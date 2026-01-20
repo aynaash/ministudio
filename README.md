@@ -1,0 +1,325 @@
+# Ministudio
+
+**Model-Agnostic AI Video Framework**
+
+*"The Model-Agnostic AI Video Framework - Make AI video generation as consistent as CSS makes web styling"*
+
+[![PyPI version](https://badge.fury.io/py/ministudio.svg)](https://pypi.org/project/ministudio/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
+Ministudio is an open-source framework that makes AI video generation consistent and programmable. Define your character once, use it everywhere - across different AI models, providers, and projects.
+
+## 🚀 Quick Start (5 Minutes)
+
+### 1. Install Ministudio
+
+```bash
+pip install ministudio
+```
+
+### 2. Generate Your First Video
+
+```bash
+# Generate a video with the mock provider (no API keys needed)
+ministudio --provider mock --concept "Neural Networks" --action "orb visualizing particle connections"
+```
+
+### 3. Use Real Providers
+
+```bash
+# With Google Vertex AI
+export GCP_PROJECT_ID="your-project-id"
+ministudio --provider vertex-ai --concept "Quantum Physics" --action "orb demonstrating wave functions"
+
+# With OpenAI Sora (when available)
+export OPENAI_API_KEY="your-api-key"
+ministudio --provider openai-sora --concept "Evolution" --action "orb showing species adaptation"
+```
+
+## 🎯 What Makes Ministudio Different
+
+| Feature | Traditional AI Video | Ministudio |
+|---------|---------------------|------------|
+| **Character Consistency** | Characters change between videos | Same character every time |
+| **Model Agnostic** | Locked to one provider | Works with any AI model |
+| **State Management** | No memory between generations | Remembers what happened |
+| **Cost Control** | Hidden pricing | Transparent cost estimation |
+| **Local Generation** | Cloud-only | Supports local models |
+
+## 🏗️ Architecture
+
+```
+ministudio/
+├── core.py              # Core abstractions and orchestrator
+├── cli.py               # Command line interface
+├── providers/           # Plugin architecture for AI models
+│   ├── base.py         # Base provider interface
+│   ├── vertex_ai.py    # Google Vertex AI (Veo)
+│   ├── openai_sora.py  # OpenAI Sora
+│   ├── local.py        # Local models (SVD, etc.)
+│   └── mock.py         # Testing without APIs
+├── styles/             # Predefined visual styles
+├── templates/          # Reusable video templates
+└── examples/           # Usage examples
+```
+
+## 📖 Core Concepts
+
+### State Management
+
+Define your character once, maintain consistency across all generations:
+
+```python
+from ministudio import Ministudio, StyleConfig
+
+# Define your character
+style = StyleConfig(
+    name="ghibli",
+    characters={
+        "orb": {
+            "appearance": "Golden glowing orb with warm inner light",
+            "motion": "Slow floating drift, gentle bobbing",
+            "glow": "Soft golden with ethereal teal accents"
+        }
+    }
+)
+
+studio = Ministudio(provider=provider, style_config=style)
+
+# Same character in every video
+video1 = await studio.generate_concept_video("Math", "orb teaching equations")
+video2 = await studio.generate_concept_video("Physics", "orb explaining gravity")
+```
+
+### Provider Agnostic
+
+Swap providers without changing your code:
+
+```python
+# Works with any provider
+providers = {
+    "vertex_ai": Ministudio.create_provider("vertex-ai", project_id="..."),
+    "openai": Ministudio.create_provider("openai-sora", api_key="..."),
+    "local": Ministudio.create_provider("local", model_path="./models")
+}
+
+# Same API for all
+for name, provider in providers.items():
+    studio = Ministudio(provider=provider)
+    result = await studio.generate_concept_video("AI", "orb learning patterns")
+```
+
+## 🛠️ Installation
+
+### Basic Installation
+
+```bash
+pip install ministudio
+```
+
+### With Provider Support
+
+```bash
+# For Google Vertex AI
+pip install ministudio[vertex-ai]
+
+# For OpenAI Sora
+pip install ministudio[openai]
+
+# For all providers
+pip install ministudio[all]
+```
+
+### From Source
+
+```bash
+git clone https://github.com/yourusername/ministudio.git
+cd ministudio
+pip install -e .
+```
+
+## 📚 Usage Examples
+
+### Python API
+
+```python
+import asyncio
+from ministudio import Ministudio
+
+async def main():
+    # Create provider
+    provider = Ministudio.create_provider("mock")
+    
+    # Create studio
+    studio = Ministudio(provider=provider)
+    
+    # Generate video
+    result = await studio.generate_concept_video(
+        concept="Machine Learning",
+        action="orb sorting data points",
+        duration=8
+    )
+    
+    if result.success:
+        print(f"Video saved to: {result.video_path}")
+    else:
+        print(f"Failed: {result.error}")
+
+asyncio.run(main())
+```
+
+### Command Line
+
+```bash
+# Basic usage
+ministudio --concept "Climate Change" --action "orb showing rising temperatures"
+
+# With specific provider
+ministudio --provider vertex-ai --concept "Evolution" --action "orb demonstrating natural selection"
+
+# Custom duration
+ministudio --duration 12 --concept "Quantum Computing" --action "orb entangling qubits"
+```
+
+### Template Series
+
+```python
+# Generate a series of related videos
+concepts = ["Photosynthesis", "Respiration", "Ecosystems"]
+results = await studio.generate_template_series("explainer", concepts)
+```
+
+## 🔧 Provider Setup
+
+### Google Vertex AI
+
+1. Create a Google Cloud Project
+2. Enable Vertex AI API
+3. Set environment variable:
+
+```bash
+export GCP_PROJECT_ID="your-project-id"
+```
+
+### OpenAI Sora
+
+```bash
+export OPENAI_API_KEY="your-api-key"
+```
+
+### Local Models
+
+```python
+provider = Ministudio.create_provider(
+    "local",
+    model_path="/path/to/stable-video-diffusion",
+    device="cuda"
+)
+```
+
+## 🎨 Style System
+
+Ministudio includes predefined styles:
+
+```python
+from ministudio.styles import ghibli_style, cyberpunk_style
+
+# Use predefined style
+studio = Ministudio(provider=provider, style_config=ghibli_style)
+
+# Customize style
+custom_style = StyleConfig(
+    name="my_style",
+    environment={"lighting": "dramatic", "colors": "monochrome"}
+)
+```
+
+## 📋 API Reference
+
+### Ministudio Class
+
+- `__init__(provider, style_config=None, output_dir="./ministudio_output")`
+- `generate_concept_video(concept, action, duration=8, mood="magical")`
+- `generate_template_series(template_name, concepts)`
+
+### Providers
+
+- `Ministudio.create_provider(provider_type, **kwargs)`
+- Supported types: `"mock"`, `"vertex-ai"`, `"openai-sora"`, `"local"`
+
+### Results
+
+- `VideoGenerationResult.success`: Boolean
+- `VideoGenerationResult.video_path`: Path to saved video
+- `VideoGenerationResult.generation_time`: Time taken
+- `VideoGenerationResult.error`: Error message if failed
+
+## 🧪 Testing
+
+Run tests with mock provider (no API keys needed):
+
+```bash
+python -m ministudio --provider mock --concept "test" --action "orb moving"
+```
+
+## 🤝 Contributing
+
+We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Adding a New Provider
+
+1. Create `providers/your_provider.py`
+2. Extend `BaseVideoProvider`
+3. Implement required methods
+4. Add to `Ministudio.create_provider()`
+
+```python
+from .base import BaseVideoProvider
+
+class YourProvider(BaseVideoProvider):
+    @property
+    def name(self) -> str:
+        return "your-provider"
+    
+    async def generate_video(self, request):
+        # Your implementation
+        pass
+```
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🗺️ Roadmap
+
+- **Phase 1 (Current)**: Core framework with multiple providers
+- **Phase 2**: Web UI and advanced templates
+- **Phase 3**: Enterprise features and integrations
+- **Phase 4**: Ecosystem and marketplace
+
+## 💡 Philosophy
+
+Ministudio believes:
+
+1. **Consistency is programmable** - Characters should look the same everywhere
+2. **Model choice is tactical** - Code should work with any AI model
+3. **Open ecosystems win** - No vendor lock-in, maximum flexibility
+4. **Developer experience matters** - Simple APIs for complex workflows
+
+## 📞 Support
+
+- **Documentation**: [docs.ministudio.ai](https://docs.ministudio.ai)
+- **Discord**: [Join our community](https://discord.gg/ministudio)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/ministudio/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/ministudio/discussions)
+
+## 🙏 Acknowledgments
+
+Inspired by the open-source AI community's work on making AI accessible and consistent.
+
+---
+
+**Made with ❤️ by the AI video generation community**
+
+*Ready to make AI video generation consistent? Let's build the future together.*

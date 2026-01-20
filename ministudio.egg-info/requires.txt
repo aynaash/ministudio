@@ -1,0 +1,12 @@
+
+[all]
+google-genai
+openai
+requests
+
+[openai]
+openai
+requests
+
+[vertex-ai]
+google-genai

@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+ministudio/__init__.py
+ministudio.egg-info/PKG-INFO
+ministudio.egg-info/SOURCES.txt
+ministudio.egg-info/dependency_links.txt
+ministudio.egg-info/entry_points.txt
+ministudio.egg-info/requires.txt
+ministudio.egg-info/top_level.txt
