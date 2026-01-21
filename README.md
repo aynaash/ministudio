@@ -193,41 +193,6 @@ docker run -p 8000:8000 ministudio
 ### Providers
 - `Ministudio.create_provider(type, **kwargs)`
 
-## Publishing to PyPI
-
-To publish your package to PyPI:
-
-1. **Install build tools:**
-   ```bash
-   pip install build twine
-   ```
-
-2. **Build the package:**
-   ```bash
-   python -m build
-   ```
-
-3. **Create PyPI account:**
-   - Go to https://pypi.org/
-   - Create account and verify email
-
-4. **Upload to PyPI:**
-   ```bash
-   twine upload dist/*
-   ```
-   Enter your PyPI username and password when prompted.
-
-5. **Test installation:**
-   ```bash
-   pip install your-package-name
-   ```
-
-For test releases, use TestPyPI:
-```bash
-twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ your-package-name
-```
-
 ## Philosophy
 
 Ministudio exists because AI video generation is powerful but inconsistent. We believe every developer should be able to create professional videos, AI should enhance creativity when making videos, open ecosystems beat walled gardens, consistency is programmable with proper state  management, and the best tools get out of the way.
