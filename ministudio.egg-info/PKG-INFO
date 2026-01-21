@@ -93,6 +93,46 @@ result = await studio.generate_concept_video(
 - **API Server**: Self-hosted REST API
 - **Docker**: Containerized deployment
 
+## Key Value: State Persistence in Segmented Generations
+
+Ministudio's core innovation is **stateful prompt programming** for AI video generation. Unlike traditional AI video tools that generate each segment independently (leading to visual inconsistencies), Ministudio maintains persistent state across video segments.
+
+### Why It Matters for Developers
+
+- **Consistent Visual Continuity**: Characters, backgrounds, and objects maintain their attributes throughout the entire video
+- **Complex Storytelling**: Create long-form narratives with evolving scenes while preserving context
+- **Reusable State Management**: Define state updates between segments for dynamic, adaptive content
+- **Scalable Video Production**: Build videos of any length with predictable, consistent results
+
+### Developer Benefits
+
+This state persistence enables developers to:
+- Build reliable AI video applications where consistency is critical
+- Create complex multi-scene videos without manual intervention
+- Maintain brand consistency across generated content
+- Scale video production workflows with programmatic control
+
+### Example: Long-Form Storytelling
+
+```python
+from ministudio import Ministudio
+
+studio = Ministudio(provider=provider)
+
+segments = [
+    {"concept": "Introduction", "action": "hero enters mystical forest"},
+    {"concept": "Discovery", "action": "hero finds ancient artifact", 
+     "state_updates": {"character": {"inventory": ["artifact"]}}},
+    {"concept": "Challenge", "action": "hero battles guardian with artifact power",
+     "state_updates": {"character": {"power": "enhanced"}}},
+    {"concept": "Resolution", "action": "hero returns home transformed"}
+]
+
+results = await studio.generate_segmented_video(segments)
+```
+
+Each segment builds on the previous state - the hero consistently has the artifact and enhanced power in later scenes, creating seamless, coherent video narratives.
+
 ## Usage
 
 ### Basic Generation
@@ -183,41 +223,6 @@ docker run -p 8000:8000 ministudio
 
 ### Providers
 - `Ministudio.create_provider(type, **kwargs)`
-
-## Publishing to PyPI
-
-To publish your package to PyPI:
-
-1. **Install build tools:**
-   ```bash
-   pip install build twine
-   ```
-
-2. **Build the package:**
-   ```bash
-   python -m build
-   ```
-
-3. **Create PyPI account:**
-   - Go to https://pypi.org/
-   - Create account and verify email
-
-4. **Upload to PyPI:**
-   ```bash
-   twine upload dist/*
-   ```
-   Enter your PyPI username and password when prompted.
-
-5. **Test installation:**
-   ```bash
-   pip install your-package-name
-   ```
-
-For test releases, use TestPyPI:
-```bash
-twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ your-package-name
-```
 
 ## Philosophy
 

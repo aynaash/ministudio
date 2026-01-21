@@ -1,27 +1,22 @@
 """
-Sample code demonstrating Ministudio with Google Vertex AI and GCP.
-
-This example shows how to:
-1. Load GCP credentials resiliently from various sources
-2. Create a Vertex AI provider for Ministudio
-3. Generate videos using state persistence
-
-Use this as a reference for integrating Ministudio with GCP in your projects.
+Google Vertex AI provider for Ministudio.
 """
 
+import time
 import asyncio
 import json
 import logging
 import os
 import re
-from typing import Dict, Any, Optional, Tuple
-
+from typing import Any, Optional, Dict
 from google.oauth2 import service_account
+from .base import BaseVideoProvider
+from ..interfaces import VideoGenerationRequest, VideoGenerationResult
 
 logger = logging.getLogger(__name__)
 
 
-def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optional[str]]:
+def load_gcp_credentials() -> tuple[Optional[service_account.Credentials], Optional[str]]:
     """
     Load GCP credentials from environment variables with high resilience to escaping issues.
 
@@ -41,7 +36,8 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
     )
 
     if not sa_key:
-        logger.warning("No GCP credential source found in environment variables")
+        logger.warning(
+            "No GCP credential source found in environment variables")
         return None, None
 
     sa_info: Optional[Dict[str, Any]] = None
@@ -50,7 +46,8 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
     if not sa_info:
         try:
             sa_info = json.loads(sa_key)
-            logger.info("✅ Successfully parsed GCP key using standard JSON parsing")
+            logger.info(
+                "Successfully parsed GCP key using standard JSON parsing")
         except json.JSONDecodeError as e:
             logger.debug(f"Standard JSON parsing failed: {e}")
 
@@ -60,7 +57,8 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
             import ast
             sa_info = ast.literal_eval(sa_key)
             if isinstance(sa_info, dict):
-                logger.info("✅ Successfully parsed GCP key using ast.literal_eval")
+                logger.info(
+                    "Successfully parsed GCP key using ast.literal_eval")
         except Exception as e:
             logger.debug(f"ast.literal_eval strategy failed: {e}")
 
@@ -80,13 +78,15 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
             # Try JSON parsing again
             try:
                 sa_info = json.loads(fixed)
-                logger.info("✅ Successfully parsed GCP key after unescaping quotes")
+                logger.info(
+                    "Successfully parsed GCP key after unescaping quotes")
             except json.JSONDecodeError:
                 # Try literal_eval on fixed string
                 import ast
                 sa_info = ast.literal_eval(fixed)
                 if isinstance(sa_info, dict):
-                    logger.info("✅ Successfully parsed GCP key using literal_eval after unescaping")
+                    logger.info(
+                        "Successfully parsed GCP key using literal_eval after unescaping")
         except Exception as e:
             logger.debug(f"Escape/quote fixing strategy failed: {e}")
 
@@ -96,12 +96,15 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
             logger.debug("Attempting regex extraction from mangled JSON...")
 
             # Extract common fields
-            project_id_match = re.search(r'["\']project_id["\']:\s*["\']([^"\']+)["\']', sa_key)
-            private_key_match = re.search(r'["\']private_key["\']:\s*["\'](-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----\\n?)["\']', sa_key, re.DOTALL)
-            client_email_match = re.search(r'["\']client_email["\']:\s*["\']([^"\']+)["\']', sa_key)
+            project_id_match = re.search(
+                r'["\']project_id["\']:\s*["\']([^"\']+)["\']', sa_key)
+            private_key_match = re.search(
+                r'["\']private_key["\']:\s*["\'](-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----\\n?)["\']', sa_key, re.DOTALL)
+            client_email_match = re.search(
+                r'["\']client_email["\']:\s*["\']([^"\']+)["\']', sa_key)
 
             if project_id_match and private_key_match and client_email_match:
-                logger.info("✅ Successfully extracted GCP fields using regex")
+                logger.info("Successfully extracted GCP fields using regex")
                 private_key = private_key_match.group(1).replace("\\n", "\n")
                 sa_info = {
                     "type": "service_account",
@@ -125,7 +128,8 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
         private_key = os.getenv("GCP_PRIVATE_KEY")
 
         if project_id and client_email and private_key:
-            logger.info("🛠️ Constructing GCP credentials from individual environment variables")
+            logger.info(
+                "Constructing GCP credentials from individual environment variables")
             private_key = private_key.replace("\\n", "\n")
             if "BEGIN PRIVATE KEY" not in private_key:
                 private_key = (
@@ -151,28 +155,34 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
         try:
             # Handle authorized user credentials differently if needed
             if sa_info.get("type") == "authorized_user":
-                logger.warning("Authorized user credentials detected - may need different scope handling")
+                logger.warning(
+                    "Authorized user credentials detected - may need different scope handling")
 
             credentials = service_account.Credentials.from_service_account_info(
-                sa_info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+                sa_info, scopes=[
+                    "https://www.googleapis.com/auth/cloud-platform"]
             )
-            project_id = sa_info.get("project_id") or sa_info.get("quota_project_id")
-            logger.info(f"✅ Successfully loaded GCP credentials for project: {project_id}")
+            project_id = sa_info.get(
+                "project_id") or sa_info.get("quota_project_id")
+            logger.info(
+                f"Successfully loaded GCP credentials for project: {project_id}")
             return credentials, project_id
 
         except Exception as e:
-            logger.error(f"❌ Failed to create credentials from service account info: {e}")
+            logger.error(
+                f"Failed to create credentials from service account info: {e}")
 
     # Strategy 6: Application Default Credentials with explicit scopes
     try:
         import google.auth
 
-        logger.info("🔄 Attempting to load Application Default Credentials...")
+        logger.info("Attempting to load Application Default Credentials...")
 
         # Check if GOOGLE_APPLICATION_CREDENTIALS is JSON content instead of a path
         adc_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         if adc_path and adc_path.strip().startswith("{"):
-            logger.info("📝 GOOGLE_APPLICATION_CREDENTIALS contains JSON content, writing to temp file...")
+            logger.info(
+                "GOOGLE_APPLICATION_CREDENTIALS contains JSON content, writing to temp file...")
             temp_creds_path = "/tmp/google_creds.json"
             with open(temp_creds_path, "w") as f:
                 f.write(adc_path)
@@ -182,7 +192,7 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
             scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
         if credentials:
-            logger.info(f"✅ Successfully loaded ADC for project: {project_id}")
+            logger.info(f"Successfully loaded ADC for project: {project_id}")
             return credentials, project_id
     except Exception as e:
         logger.debug(f"ADC fallback failed: {e}")
@@ -191,117 +201,95 @@ def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optio
     return None, None
 
 
-async def main():
-    """
-    Main example function demonstrating Ministudio with Vertex AI.
-    """
-    # Setup logging
-    logging.basicConfig(level=logging.INFO)
+class VertexAIProvider(BaseVideoProvider):
+    """Google Vertex AI (Veo) provider with GCP authentication"""
 
-    # Load GCP credentials
-    credentials, project_id = load_gcp_credentials()
-    if not credentials or not project_id:
-        logger.error("Failed to load GCP credentials. Please set environment variables.")
-        return
+    def __init__(self, project_id: Optional[str] = None, location: str = "us-central1", **kwargs):
+        super().__init__(**kwargs)
+        self.location = location
 
-    # Import Ministudio (assuming it's installed)
-    try:
-        from ministudio import Ministudio
-    except ImportError:
-        logger.error("Ministudio not installed. Run: pip install ministudio[vertex-ai]")
-        return
+        # Load GCP credentials
+        self.credentials, loaded_project_id = load_gcp_credentials()
 
-    # Create Vertex AI provider
-    try:
-        provider = Ministudio.create_provider("vertex-ai", project_id=project_id)
-        # Note: In a real implementation, you might need to pass credentials explicitly
-        # depending on how the provider is implemented
-    except Exception as e:
-        logger.error(f"Failed to create Vertex AI provider: {e}")
-        return
+        if not self.credentials:
+            raise ValueError(
+                "Failed to load GCP credentials. Please set environment variables.")
 
-    # Create Ministudio instance
-    studio = Ministudio(provider=provider)
+        self.project_id = project_id or loaded_project_id
+        if not self.project_id:
+            raise ValueError(
+                "Project ID not provided and could not be loaded from credentials.")
 
-    # Example 1: Basic concept video
-    print("🎬 Generating basic concept video...")
-    try:
-        result = await studio.generate_concept_video(
-            concept="Nature",
-            action="forest growing in time lapse"
-        )
-        if result.success:
-            print(f"✅ Video generated: {result.video_path}")
-            print(f"⏱️ Generation time: {result.generation_time:.1f}s")
-        else:
-            print(f"❌ Generation failed: {result.error}")
-    except Exception as e:
-        logger.error(f"Error generating video: {e}")
+        self._client = None
 
-    # Example 2: Segmented video with state persistence
-    print("\n🎬 Generating segmented video with state persistence...")
-    segments = [
-        {
-            "concept": "Adventure Begins",
-            "action": "explorer discovers ancient temple"
-        },
-        {
-            "concept": "Discovery",
-            "action": "explorer finds glowing artifact inside temple",
-            "state_updates": {
-                "character": {"inventory": ["artifact"]},
-                "environment": {"lighting": "mystical"}
-            }
-        },
-        {
-            "concept": "Challenge",
-            "action": "explorer uses artifact to solve puzzle",
-            "state_updates": {
-                "character": {"power": "enhanced"}
-            }
-        },
-        {
-            "concept": "Triumph",
-            "action": "explorer escapes temple with treasure"
-        }
-    ]
+    @property
+    def name(self) -> str:
+        return "google-vertex-ai"
 
-    try:
-        results = await studio.generate_segmented_video(segments)
-        print(f"✅ Generated {len(results)} video segments")
-        for i, result in enumerate(results, 1):
-            if result.success:
-                print(f"  Segment {i}: {result.video_path}")
-            else:
-                print(f"  Segment {i} failed: {result.error}")
-    except Exception as e:
-        logger.error(f"Error generating segmented video: {e}")
+    async def generate_video(self, request: VideoGenerationRequest) -> VideoGenerationResult:
+        start_time = time.time()
 
-    # Example 3: Using VideoConfig for customization
-    print("\n🎬 Generating video with custom config...")
-    try:
-        from ministudio import VideoConfig
+        try:
+            # Lazy import
+            from google.genai import types
+            from google import genai
 
-        config = VideoConfig(
-            duration_seconds=10,
-            style_name="cinematic",
-            mood="epic"
-        )
+            if self._client is None:
+                self._client = genai.Client(
+                    project=self.project_id,
+                    location=self.location,
+                    vertexai=True,
+                    credentials=self.credentials
+                )
 
-        result = await studio.generate_concept_video(
-            concept="Hero's Journey",
-            action="warrior battles mythical creature",
-            config=config
-        )
+            source = types.GenerateVideosSource(prompt=request.prompt)
+            config = types.GenerateVideosConfig(
+                aspect_ratio=request.aspect_ratio,
+                duration_seconds=request.duration_seconds
+            )
 
-        if result.success:
-            print(f"✅ Custom video generated: {result.video_path}")
-        else:
-            print(f"❌ Custom generation failed: {result.error}")
-    except Exception as e:
-        logger.error(f"Error with custom config: {e}")
+            operation = self._client.models.generate_videos(
+                model="veo-3.1-generate-preview",
+                source=source,
+                config=config
+            )
 
+            # Poll for completion (simplified - in reality would be async)
+            while not operation.done:
+                await asyncio.sleep(5)
+                operation = self._client.operations.get(operation)
 
-if __name__ == "__main__":
-    # Run the example
-    asyncio.run(main())
+            response = operation.result
+            if response and response.generated_videos:
+                video = response.generated_videos[0]
+                video_bytes = video.video.video_bytes or video.video.bytes
+
+                return VideoGenerationResult(
+                    success=True,
+                    video_bytes=video_bytes,
+                    provider=self.name,
+                    generation_time=time.time() - start_time,
+                    metadata={
+                        "model": "veo-3.1",
+                        "operation_id": operation.name
+                    }
+                )
+
+            return VideoGenerationResult(
+                success=False,
+                provider=self.name,
+                generation_time=time.time() - start_time,
+                error="No video generated"
+            )
+
+        except Exception as e:
+            return VideoGenerationResult(
+                success=False,
+                provider=self.name,
+                generation_time=time.time() - start_time,
+                error=str(e)
+            )
+
+    def estimate_cost(self, duration_seconds: int) -> float:
+        # Vertex AI pricing estimate (subject to change)
+        return duration_seconds * 0.05  # Example: $0.05 per second
