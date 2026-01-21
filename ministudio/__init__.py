@@ -36,7 +36,10 @@ from .config import (
     Camera,
     LightSource,
     Color,
-    Vector3
+    Vector3,
+    ShotType,
+    ShotConfig,
+    SceneConfig
 )
 
 # State & Orchestration
@@ -77,5 +80,8 @@ __all__ = [
     "Camera",
     "LightSource",
     "Color",
-    "Vector3"
+    "Vector3",
+    "ShotType",
+    "ShotConfig",
+    "SceneConfig"
 ]

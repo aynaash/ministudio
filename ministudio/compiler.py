@@ -49,9 +49,11 @@ class ProgrammaticPromptCompiler:
 
         # 6. ACTION (The specific scene)
         if config.action_description:
-            # Action is the most important, often put first or prominently
-            # For this structured format, we append it as a clear instruction
-            sections.append(f"ACTION:\n{config.action_description}")
+            # Check for shot type in custom_metadata if not explicitly provided
+            shot_info = ""
+            if config.custom_metadata.get("shot_type"):
+                shot_info = f"SHOT TYPE: {config.custom_metadata['shot_type']}\n"
+            sections.append(f"{shot_info}ACTION:\n{config.action_description}")
 
         # 7. CONTINUITY
         if config.continuity:
@@ -66,6 +68,8 @@ class ProgrammaticPromptCompiler:
             desc = f"- {name}:"
             if char.genetics:
                 desc += f" {self._dict_to_readable(char.genetics)}"
+            if char.reference_images:
+                desc += f" (Referencing visual samples of {name})"
             if char.motion_library:
                 desc += f" Motion: {self._dict_to_readable(char.motion_library)}"
             lines.append(desc)
@@ -74,6 +78,9 @@ class ProgrammaticPromptCompiler:
     def _compile_environment(self, env: Environment) -> str:
         lines = ["ENVIRONMENT:"]
         lines.append(f"- Location: {env.location}")
+        if env.reference_images:
+            lines.append(
+                f"- Visual Identity: Matching provided background samples")
         if env.physics:
             lines.append(f"- Physics: {self._dict_to_readable(env.physics)}")
         if env.composition:

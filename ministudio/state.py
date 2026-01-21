@@ -6,6 +6,7 @@ Acts like the etcd/state store in Kubernetes.
 
 import copy
 import logging
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
@@ -21,6 +22,11 @@ class WorldState:
     characters: Dict[str, Character]
     environment: Optional[Environment]
     style: Optional[StyleDNA]
+    output_video_path: Optional[Path] = None
+    last_frames: List[str] = field(
+        default_factory=list)  # Paths to extracted frames
+    active_speaker: Optional[str] = None
+    conflict_matrix: Dict[str, str] = field(default_factory=dict)
     story_progress: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -29,6 +35,10 @@ class WorldState:
             "characters": {k: v.to_dict() for k, v in self.characters.items()},
             "environment": self.environment.to_dict() if self.environment else None,
             "style": self.style.to_dict() if self.style else None,
+            "output_video_path": str(self.output_video_path) if self.output_video_path else None,
+            "last_frames": self.last_frames,
+            "active_speaker": self.active_speaker,
+            "conflict_matrix": self.conflict_matrix,
             "story_progress": self.story_progress
         }
 
@@ -61,13 +71,15 @@ class StatePersistenceEngine:
             return {}
 
         recent = self.history[-lookback:]
-        # Simple extraction for now
+        last = recent[-1]
+
         return {
-            "previous_scene_id": recent[-1].scene_id,
+            "previous_scene_id": last.scene_id,
             "character_states": {
                 name: char.emotional_palette.get("current_emotion", "neutral")
-                for name, char in recent[-1].characters.items()
-            }
+                for name, char in last.characters.items()
+            },
+            "continuity_frames": last.last_frames
         }
 
 
@@ -85,6 +97,7 @@ class VideoStateMachine:
         self.characters: Dict[str, Character] = {}
         self.environment: Optional[Environment] = None
         self.style: Optional[StyleDNA] = None
+        self.conflict_matrix: Dict[str, str] = {}
 
         if initial_config:
             self.update_from_config(initial_config)
@@ -102,7 +115,12 @@ class VideoStateMachine:
         if config.style_dna:
             self.style = config.style_dna
 
-    def next_scene(self) -> WorldState:
+        # Conflict matrix update (if provided in custom_metadata or scene_config)
+        # Note: In a real impl, we'd have a formal conflict field in VideoConfig
+        if hasattr(config, 'conflict_matrix') and config.conflict_matrix:
+            self.conflict_matrix.update(config.conflict_matrix)
+
+    def next_scene(self, video_path: Optional[Path] = None, frames: List[str] = None, speaker: Optional[str] = None) -> WorldState:
         """Advance to the next scene, committing the current state"""
         self.current_scene_id += 1
 
@@ -110,7 +128,11 @@ class VideoStateMachine:
             scene_id=self.current_scene_id,
             characters=copy.deepcopy(self.characters),
             environment=copy.deepcopy(self.environment),
-            style=copy.deepcopy(self.style)
+            style=copy.deepcopy(self.style),
+            output_video_path=video_path,
+            last_frames=frames or [],
+            active_speaker=speaker,
+            conflict_matrix=copy.deepcopy(self.conflict_matrix)
         )
 
         self.persistence.save_snapshot(snapshot)

@@ -3,6 +3,7 @@ Configuration system for Ministudio video generation.
 Supports "Code-as-Video" programmatic visual specifications.
 """
 
+from enum import Enum
 from dataclasses import dataclass, field, asdict
 from typing import Optional, Dict, Any, Union, List, Tuple
 from pathlib import Path
@@ -41,6 +42,26 @@ class Vector3:
     def to_dict(self):
         return {"x": self.x, "y": self.y, "z": self.z}
 
+
+class ShotType(str, Enum):
+    WS = "Wide Shot"
+    MS = "Medium Shot"
+    CU = "Close-Up"
+    ECU = "Extreme Close-Up"
+
+
+@dataclass
+class VoiceProfile:
+    """Detailed voice characteristics"""
+    gender: str = "neutral"
+    style: str = "warm"  # warm, husky, energetic, robotic, etc.
+    accent: Optional[str] = None
+    pitch: float = 1.0
+    stability: float = 0.5
+
+    def to_dict(self):
+        return asdict(self)
+
 # --- 1. Character DNA ---
 
 
@@ -58,6 +79,9 @@ class Character:
     genetics: Dict[str, Any] = field(default_factory=dict)
     motion_library: Dict[str, str] = field(default_factory=dict)
     emotional_palette: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    reference_images: List[str] = field(default_factory=list)
+    voice_id: Optional[str] = None  # ID for ElevenLabs/Google TTS
+    voice_profile: Optional[VoiceProfile] = None
 
     def to_dict(self):
         return asdict(self)
@@ -72,6 +96,7 @@ class Environment:
     physics: Dict[str, Any] = field(default_factory=dict)
     generation_rules: Dict[str, Any] = field(default_factory=dict)
     composition: Dict[str, Any] = field(default_factory=dict)
+    reference_images: List[str] = field(default_factory=list)
 
     def to_dict(self):
         return asdict(self)
@@ -97,6 +122,63 @@ class Cinematography:
 
     def to_dict(self):
         return asdict(self)
+
+
+@dataclass
+class ShotConfig:
+    """Configuration for a specific shot within a scene"""
+    shot_type: ShotType = ShotType.MS
+    action: str = ""
+    camera_movement: str = "static"
+    continuity_required: bool = True
+    duration_seconds: int = 4
+
+    # Programmable Cuts: Overrides for this specific shot
+    characters: Optional[Dict[str, Character]] = None
+    environment: Optional[Environment] = None
+
+    # Audio/Dialogue
+    dialogue: Optional[str] = None
+    narration: Optional[str] = None
+    acting_notes: Optional[str] = None
+
+    def to_dict(self):
+        d = {
+            "shot_type": self.shot_type.value if isinstance(self.shot_type, ShotType) else self.shot_type,
+            "action": self.action,
+            "camera_movement": self.camera_movement,
+            "continuity_required": self.continuity_required,
+            "duration_seconds": self.duration_seconds
+        }
+        if self.characters:
+            d["characters"] = {k: v.to_dict()
+                               for k, v in self.characters.items()}
+        if self.environment:
+            d["environment"] = self.environment.to_dict()
+        return d
+
+
+@dataclass
+class SceneConfig:
+    """Configuration for a full cinematic scene"""
+    concept: str = ""
+    characters: Dict[str, Character] = field(default_factory=dict)
+    environment: Optional[Environment] = None
+    shots: List[ShotConfig] = field(default_factory=list)
+    mood: str = "magical"
+
+    # Conflict/Relationship state
+    # e.g. {"Captain,Officer": "tense", "Captain,Merchant": "friendly"}
+    conflict_matrix: Dict[str, str] = field(default_factory=dict)
+
+    def to_dict(self):
+        return {
+            "concept": self.concept,
+            "characters": {k: v.to_dict() for k, v in self.characters.items()},
+            "environment": self.environment.to_dict() if self.environment else None,
+            "shots": [s.to_dict() for s in self.shots],
+            "mood": self.mood
+        }
 
 # --- 4. Lighting ---
 
@@ -196,6 +278,7 @@ class VideoConfig:
     continuity: Optional[ContinuityEngine] = None
 
     action_description: str = ""
+    conflict_matrix: Dict[str, str] = field(default_factory=dict)
 
     # Legacy compatibility
     technical: Dict[str, Any] = field(default_factory=dict)
