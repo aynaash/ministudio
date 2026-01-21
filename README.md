@@ -197,7 +197,7 @@ python -m pytest
 # Test with mock provider
 python test_vertex_simple.py
 
-# Test with Vertex AI (requires Doppler)
+# Test with Vertex AI (if you are using doppler to manage yuor secrets)
 doppler run -- python test_vertex_ai.py
 
 # Test sequence generation
