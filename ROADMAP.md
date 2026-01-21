@@ -7,7 +7,7 @@ Our goal is to reach v1.0 as the definitive orchestration layer for AI video.
 - [x] "Kubernetes for Video" Orchestration Engine
 - [x] State Machine for world state persistence
 - [x] Programmatic Prompt Compiler (Character, Environment, Lighting DNA)
-- [x] Model-agnostic configuration (`VideoConfig`)
+- [x] Model-agnostic configuration (`VideoConfig`)pulish to ppypi too
 
 ## Phase 2: Performance & Precision (In Progress)
 - [ ] **Visual DNA Extraction**: Analyze generated videos to update State Machine automatically.

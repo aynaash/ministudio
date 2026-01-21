@@ -27,7 +27,8 @@ classifiers = [
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
-    "gradio"
+    "gradio",
+    "moviepy"
 ]
 
 [project.optional-dependencies]

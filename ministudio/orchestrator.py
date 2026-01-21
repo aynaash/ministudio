@@ -1,6 +1,6 @@
 """
 Video Orchestrator.
-The "Kubernetes Controller" that coordinates State, Compilation, and Execution.
+The "Kubernetes like Controller" that coordinates State, Compilation, and Execution.
 """
 
 import logging

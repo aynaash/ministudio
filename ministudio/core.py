@@ -22,6 +22,8 @@ import logging
 from ministudio.config import VideoConfig, DEFAULT_CONFIG
 from ministudio.interfaces import VideoGenerationRequest, VideoGenerationResult, VideoProvider
 from ministudio.orchestrator import VideoOrchestrator
+from ministudio.utils import merge_videos
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO,
@@ -167,9 +169,38 @@ class Ministudio:
     async def generate_segmented_video(self, segments: List[Dict[str, Any]], base_config: Optional[VideoConfig] = None) -> List[VideoGenerationResult]:
         """
         Generate a segmented video with state persistence.
-        Delegates to Orchestrator's sequence generation.
+        Saves each segment and automatically merges them into a master video.
         """
         if base_config is None:
             base_config = DEFAULT_CONFIG
 
-        return await self.orchestrator.generate_sequence(segments, base_config)
+        # Generate segments via orchestrator
+        results = await self.orchestrator.generate_sequence(segments, base_config)
+
+        # Save each segment to the output directory
+        for i, (segment, result) in enumerate(zip(segments, results)):
+            if result.success and result.video_bytes:
+                concept = segment.get("concept", f"segment_{i}")
+                filename = f"seg_{i:02d}_{concept.replace(' ', '_')}_{int(time.time())}.mp4"
+
+                output_path = self.output_dir / filename
+                output_path.write_bytes(result.video_bytes)
+                result.video_path = output_path
+                logger.info(f"Segment {i} saved to: {output_path}")
+
+        # Automatic Merge logic
+        if results and all(r.success and r.video_path for r in results):
+
+            merged_filename = f"master_story_{int(time.time())}.mp4"
+            merged_path = self.output_dir / merged_filename
+
+            video_paths = [r.video_path for r in results]
+            success = merge_videos(video_paths, merged_path)
+
+            if success:
+                logger.info(
+                    f"Master Story merged successfully: {merged_path}")
+            else:
+                logger.error("Failed to merge segments into Master Story.")
+
+        return results
