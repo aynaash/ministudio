@@ -1,6 +1,9 @@
 README.md
 pyproject.toml
 ministudio/__init__.py
+ministudio/api.py
+ministudio/config.py
+ministudio/gradio_app.py
 ministudio.egg-info/PKG-INFO
 ministudio.egg-info/SOURCES.txt
 ministudio.egg-info/dependency_links.txt

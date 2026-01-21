@@ -330,6 +330,78 @@ class Ministudio:
 
         return result
 
+    async def generate_segmented_video(self, segments: List[Dict[str, Any]], base_config: Optional[VideoConfig] = None) -> List[VideoGenerationResult]:
+        """
+        Generate a segmented video with state persistence across segments.
+        
+        Args:
+            segments: List of segment dictionaries, each containing:
+                - 'concept': str - The topic/theme for this segment
+                - 'action': str - The action happening in this segment  
+                - 'state_updates': dict (optional) - State changes to apply
+            base_config: Base VideoConfig, updated with state_updates for each segment
+            
+        Returns:
+            List of VideoGenerationResult objects for each segment
+            
+        Example:
+            segments = [
+                {
+                    "concept": "Introduction", 
+                    "action": "Character enters the room",
+                    "state_updates": {"character": {"location": "room"}}
+                },
+                {
+                    "concept": "Action",
+                    "action": "Character picks up the phone", 
+                    "state_updates": {"character": {"holding": "phone"}}
+                },
+                {
+                    "concept": "Climax",
+                    "action": "Character makes an important call",
+                    "state_updates": {}
+                }
+            ]
+            results = await studio.generate_segmented_video(segments, config)
+        """
+        if base_config is None:
+            base_config = DEFAULT_CONFIG
+            
+        results = []
+        current_config_dict = base_config.to_dict()
+        
+        for segment in segments:
+            # Create config for this segment with accumulated state
+            segment_config = VideoConfig.from_dict(current_config_dict)
+            
+            # Apply state updates for this segment
+            state_updates = segment.get("state_updates", {})
+            for category, updates in state_updates.items():
+                if category in segment_config.characters:
+                    segment_config.characters[category].update(updates)
+                elif category in segment_config.environment:
+                    segment_config.environment.update(updates)
+                elif category == "technical":
+                    segment_config.technical.update(updates)
+                else:
+                    # Custom state in metadata
+                    if category not in segment_config.custom_metadata:
+                        segment_config.custom_metadata[category] = {}
+                    segment_config.custom_metadata[category].update(updates)
+            
+            # Generate this segment
+            result = await self.generate_concept_video(
+                concept=segment["concept"],
+                action=segment["action"], 
+                config=segment_config
+            )
+            results.append(result)
+            
+            # Update accumulated state for next segment
+            current_config_dict = segment_config.to_dict()
+            
+        return results
+
     async def generate_template_series(self,
                                      template_name: str,
                                      concepts: List[str]) -> List[VideoGenerationResult]:

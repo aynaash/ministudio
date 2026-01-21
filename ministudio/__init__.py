@@ -15,6 +15,7 @@ from .core import (
     PromptEngine,
     VideoTemplate
 )
+from .config import VideoConfig, DEFAULT_CONFIG, CINEMATIC_CONFIG, QUICK_CONFIG, HIGH_QUALITY_CONFIG
 
 __version__ = "0.1.0"
 __author__ = "Ministudio Team"
@@ -27,5 +28,10 @@ __all__ = [
     "VideoGenerationResult",
     "VideoProvider",
     "PromptEngine",
-    "VideoTemplate"
+    "VideoTemplate",
+    "VideoConfig",
+    "DEFAULT_CONFIG",
+    "CINEMATIC_CONFIG",
+    "QUICK_CONFIG",
+    "HIGH_QUALITY_CONFIG"
 ]

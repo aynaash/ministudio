@@ -1,22 +1,27 @@
 """
-Google Vertex AI provider for Ministudio.
+Sample code demonstrating Ministudio with Google Vertex AI and GCP.
+
+This example shows how to:
+1. Load GCP credentials resiliently from various sources
+2. Create a Vertex AI provider for Ministudio
+3. Generate videos using state persistence
+
+Use this as a reference for integrating Ministudio with GCP in your projects.
 """
 
-import time
 import asyncio
 import json
 import logging
 import os
 import re
-from typing import Any, Optional, Dict
+from typing import Dict, Any, Optional, Tuple
+
 from google.oauth2 import service_account
-from .base import BaseVideoProvider
-from ..core import VideoGenerationRequest, VideoGenerationResult
 
 logger = logging.getLogger(__name__)
 
 
-def load_gcp_credentials() -> tuple[Optional[service_account.Credentials], Optional[str]]:
+def load_gcp_credentials() -> Tuple[Optional[service_account.Credentials], Optional[str]]:
     """
     Load GCP credentials from environment variables with high resilience to escaping issues.
 
@@ -186,93 +191,117 @@ def load_gcp_credentials() -> tuple[Optional[service_account.Credentials], Optio
     return None, None
 
 
-class VertexAIProvider(BaseVideoProvider):
-    """Google Vertex AI (Veo) provider with GCP authentication"""
+async def main():
+    """
+    Main example function demonstrating Ministudio with Vertex AI.
+    """
+    # Setup logging
+    logging.basicConfig(level=logging.INFO)
 
-    def __init__(self, project_id: Optional[str] = None, location: str = "us-central1", **kwargs):
-        super().__init__(**kwargs)
-        self.location = location
+    # Load GCP credentials
+    credentials, project_id = load_gcp_credentials()
+    if not credentials or not project_id:
+        logger.error("Failed to load GCP credentials. Please set environment variables.")
+        return
 
-        # Load GCP credentials
-        self.credentials, loaded_project_id = load_gcp_credentials()
+    # Import Ministudio (assuming it's installed)
+    try:
+        from ministudio import Ministudio
+    except ImportError:
+        logger.error("Ministudio not installed. Run: pip install ministudio[vertex-ai]")
+        return
 
-        if not self.credentials:
-            raise ValueError("Failed to load GCP credentials. Please set environment variables.")
+    # Create Vertex AI provider
+    try:
+        provider = Ministudio.create_provider("vertex-ai", project_id=project_id)
+        # Note: In a real implementation, you might need to pass credentials explicitly
+        # depending on how the provider is implemented
+    except Exception as e:
+        logger.error(f"Failed to create Vertex AI provider: {e}")
+        return
 
-        self.project_id = project_id or loaded_project_id
-        if not self.project_id:
-            raise ValueError("Project ID not provided and could not be loaded from credentials.")
+    # Create Ministudio instance
+    studio = Ministudio(provider=provider)
 
-        self._client = None
+    # Example 1: Basic concept video
+    print("🎬 Generating basic concept video...")
+    try:
+        result = await studio.generate_concept_video(
+            concept="Nature",
+            action="forest growing in time lapse"
+        )
+        if result.success:
+            print(f"✅ Video generated: {result.video_path}")
+            print(f"⏱️ Generation time: {result.generation_time:.1f}s")
+        else:
+            print(f"❌ Generation failed: {result.error}")
+    except Exception as e:
+        logger.error(f"Error generating video: {e}")
 
-    @property
-    def name(self) -> str:
-        return "google-vertex-ai"
+    # Example 2: Segmented video with state persistence
+    print("\n🎬 Generating segmented video with state persistence...")
+    segments = [
+        {
+            "concept": "Adventure Begins",
+            "action": "explorer discovers ancient temple"
+        },
+        {
+            "concept": "Discovery",
+            "action": "explorer finds glowing artifact inside temple",
+            "state_updates": {
+                "character": {"inventory": ["artifact"]},
+                "environment": {"lighting": "mystical"}
+            }
+        },
+        {
+            "concept": "Challenge",
+            "action": "explorer uses artifact to solve puzzle",
+            "state_updates": {
+                "character": {"power": "enhanced"}
+            }
+        },
+        {
+            "concept": "Triumph",
+            "action": "explorer escapes temple with treasure"
+        }
+    ]
 
-    async def generate_video(self, request: VideoGenerationRequest) -> VideoGenerationResult:
-        start_time = time.time()
+    try:
+        results = await studio.generate_segmented_video(segments)
+        print(f"✅ Generated {len(results)} video segments")
+        for i, result in enumerate(results, 1):
+            if result.success:
+                print(f"  Segment {i}: {result.video_path}")
+            else:
+                print(f"  Segment {i} failed: {result.error}")
+    except Exception as e:
+        logger.error(f"Error generating segmented video: {e}")
 
-        try:
-            # Lazy import
-            from google.genai import types
-            from google import genai
+    # Example 3: Using VideoConfig for customization
+    print("\n🎬 Generating video with custom config...")
+    try:
+        from ministudio import VideoConfig
 
-            if self._client is None:
-                self._client = genai.Client(
-                    project=self.project_id,
-                    location=self.location,
-                    vertexai=True,
-                    credentials=self.credentials
-                )
+        config = VideoConfig(
+            duration_seconds=10,
+            style_name="cinematic",
+            mood="epic"
+        )
 
-            source = types.GenerateVideosSource(prompt=request.prompt)
-            config = types.GenerateVideosConfig(
-                aspect_ratio=request.aspect_ratio,
-                duration_seconds=request.duration_seconds
-            )
+        result = await studio.generate_concept_video(
+            concept="Hero's Journey",
+            action="warrior battles mythical creature",
+            config=config
+        )
 
-            operation = self._client.models.generate_videos(
-                model="veo-3.1-generate-preview",
-                source=source,
-                config=config
-            )
+        if result.success:
+            print(f"✅ Custom video generated: {result.video_path}")
+        else:
+            print(f"❌ Custom generation failed: {result.error}")
+    except Exception as e:
+        logger.error(f"Error with custom config: {e}")
 
-            # Poll for completion (simplified - in reality would be async)
-            while not operation.done:
-                await asyncio.sleep(5)
-                operation = self._client.operations.get(operation)
 
-            response = operation.result
-            if response and response.generated_videos:
-                video = response.generated_videos[0]
-                video_bytes = video.video.video_bytes or video.video.bytes
-
-                return VideoGenerationResult(
-                    success=True,
-                    video_bytes=video_bytes,
-                    provider=self.name,
-                    generation_time=time.time() - start_time,
-                    metadata={
-                        "model": "veo-3.1",
-                        "operation_id": operation.name
-                    }
-                )
-
-            return VideoGenerationResult(
-                success=False,
-                provider=self.name,
-                generation_time=time.time() - start_time,
-                error="No video generated"
-            )
-
-        except Exception as e:
-            return VideoGenerationResult(
-                success=False,
-                provider=self.name,
-                generation_time=time.time() - start_time,
-                error=str(e)
-            )
-
-    def estimate_cost(self, duration_seconds: int) -> float:
-        # Vertex AI pricing estimate (subject to change)
-        return duration_seconds * 0.05  # Example: $0.05 per second
+if __name__ == "__main__":
+    # Run the example
+    asyncio.run(main())
