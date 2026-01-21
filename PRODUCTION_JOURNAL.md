@@ -19,7 +19,7 @@ ShotConfig(
     environment=GHIBLI_ATELIER,
     action="Glowing vines of data grow around the desk."
 )
-```</details> | **[▶ Watch Full Ghibli 2.0 Story](contextbytes_production/contextbytes_brand_story.mp4)**<br>*(6 Shots • 48s • 4K Shinkai Style)* |
+```</details> | <video src="contextbytes_production/contextbytes_brand_story.mp4" controls width="400"></video><br>*(6 Shots • 48s • 4K Shinkai Style)* |
 
 ### ⚠️ Challenges Noted:
 - **Visual Drift**: Despite identity grounding, Emma's blue sweater occasionally changes shade between Shot 1 and Shot 6.
@@ -37,7 +37,7 @@ ShotConfig(
 SARAH.current_state={"expression": "fearful"}
 # ARIA (AI Hologram)
 ARIA = Character(identity={"form": "liquid light hologram"})
-```</details> | **[▶ Watch Full Complex Story](the_last_algorithm/the_last_algorithm.mp4)**<br>*(8 Shots • 64s • Cinematic Night/Dawn Lab)* |
+```</details> | <video src="the_last_algorithm/the_last_algorithm.mp4" controls width="400"></video><br>*(8 Shots • 64s • Cinematic Night/Dawn Lab)* |
 
 ### ⚠️ Challenges Noted:
 - **Temporal Stability**: Sarah's movements during her emotional transition were slightly "jittery" between keys.

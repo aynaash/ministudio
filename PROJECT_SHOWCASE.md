@@ -10,11 +10,11 @@ Welcome to the future of **Stateful Video Generation**. MiniStudio allows develo
 **Script Path**: `examples/contextbytes_brand_story.py`  
 **Vision**: A cinematic 1-minute journey from data chaos to cloud wisdom using Studio Ghibli aesthetics.
 
-| The Production Script | The High-Quality Result |
+| The Production Script | The Cinematic Player |
 | :--- | :--- |
-| **[Brand Story 2.0](examples/contextbytes_brand_story.py)** | **[🎬 Watch Full Production](contextbytes_production/contextbytes_brand_story.mp4)** |
-| **[The Last Algorithm](examples/complex_story_demo.py)** | **[🎬 Watch Full Production](the_last_algorithm/the_last_algorithm.mp4)** |
-| **[Quantum TikTok](examples/quantum_tiktok_demo.py)** | **[🎬 Watch Full Production](quantum_tiktok/quantum_mechanics_explained.mp4)** |
+| **[Brand Story 2.0](examples/contextbytes_brand_story.py)** | <video src="contextbytes_production/contextbytes_brand_story.mp4" controls width="400"></video> |
+| **[The Last Algorithm](examples/complex_story_demo.py)** | <video src="the_last_algorithm/the_last_algorithm.mp4" controls width="400"></video> |
+| **[Quantum TikTok](examples/quantum_tiktok_demo.py)** | <video src="quantum_tiktok/quantum_mechanics_explained.mp4" controls width="400"></video> |
 
 ---
 
