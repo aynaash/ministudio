@@ -5,62 +5,58 @@ Run with: python -m ministudio.gradio_app
 
 import gradio as gr
 import asyncio
-from . import Ministudio
+import logging
+from . import Ministudio, VideoConfig
+
+logger = logging.getLogger(__name__)
 
 
-async def generate_video(provider: str, concept: str, action: str, duration: int, style: str):
-    """Generate video using Ministudio"""
+async def generate_video_ui(provider_name: str, concept: str, action: str, duration: int, style: str):
+    """Generate video using Ministudio and update UI"""
     try:
-        # Create provider
-        if provider == "vertex-ai":
-            provider_obj = Ministudio.create_provider("vertex-ai", project_id="your-project")  # User needs to set
-        elif provider == "openai-sora":
-            provider_obj = Ministudio.create_provider("openai-sora", api_key="your-key")  # User needs to set
-        else:
-            provider_obj = Ministudio.create_provider("mock")
+        # 1. Create provider
+        try:
+            provider_obj = Ministudio.create_provider(provider_name)
+        except Exception as e:
+            return None, f"✗ Provider Error: {str(e)}"
 
-        # Create studio
+        # 2. Create studio
         studio = Ministudio(provider=provider_obj)
 
-        # Apply style if selected
-        if style and style != "default":
-            styles = {
-                "ghibli": "ghibli",
-                "cyberpunk": "cyberpunk",
-                "cinematic": "cinematic",
-                "realistic": "realistic"
-            }
-            if style in styles:
-                from . import styles
-                style_config = getattr(styles, styles[style] + '_style', None)
-                if style_config:
-                    studio.style_config = style_config
+        # 3. Create config based on UI inputs
+        config = VideoConfig(
+            duration_seconds=duration,
+            style_name=style if style != "default" else "ghibli",
+            mood="cinematic" if style == "cinematic" else "magical"
+        )
 
-        # Generate video
+        # 4. Generate video
+        logger.info(f"UI Generation: {concept} - {action} ({provider_name})")
         result = await studio.generate_concept_video(
             concept=concept,
             action=action,
-            duration=duration
+            config=config
         )
 
         if result.success and result.video_path:
-            status = f"✓ Video generated successfully in {result.generation_time:.1f}s"
+            status = f"✓ Generated in {result.generation_time:.1f}s via {result.provider}"
             return str(result.video_path), status
         else:
             return None, f"✗ Generation failed: {result.error}"
 
     except Exception as e:
-        return None, f"✗ Error: {str(e)}"
+        logger.error(f"UI Error: {e}")
+        return None, f"✗ System Error: {str(e)}"
 
 
 # Create Gradio interface
-with gr.Blocks(title="Ministudio - AI Video Generator", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="Ministudio - AI Video Generator") as demo:
     gr.Markdown("""
     # 🎬 Ministudio - AI Video Generator
-
-    Generate consistent AI videos across multiple providers.
-
-    **Note:** For real providers, set your API keys in the code or environment variables.
+    
+    ### *The Kubernetes for AI Video*
+    
+    Generate consistent AI videos across multiple providers using a state-machine architecture.
     """)
 
     with gr.Row():
@@ -69,29 +65,15 @@ with gr.Blocks(title="Ministudio - AI Video Generator", theme=gr.themes.Soft()) 
                 choices=["mock", "vertex-ai", "openai-sora"],
                 value="mock",
                 label="AI Provider",
-                info="Select the AI model provider"
+                info="Select the backend AI engine"
             )
 
             style = gr.Dropdown(
-                choices=["default", "ghibli", "cyberpunk", "cinematic", "realistic"],
+                choices=["default", "ghibli", "cyberpunk",
+                         "cinematic", "realistic"],
                 value="ghibli",
                 label="Visual Style",
-                info="Choose the visual aesthetic"
-            )
-
-        with gr.Column(scale=2):
-            concept = gr.Textbox(
-                label="Concept",
-                placeholder="e.g., Quantum Physics, Machine Learning, Climate Change",
-                lines=2,
-                info="The main topic or theme"
-            )
-
-            action = gr.Textbox(
-                label="Action/Scene",
-                placeholder="e.g., orb demonstrating wave functions, character exploring cave",
-                lines=3,
-                info="Describe what's happening in the video"
+                info="Visual aesthetic DNA"
             )
 
             duration = gr.Slider(
@@ -100,50 +82,54 @@ with gr.Blocks(title="Ministudio - AI Video Generator", theme=gr.themes.Soft()) 
                 value=8,
                 step=1,
                 label="Duration (seconds)",
-                info="Video length in seconds"
             )
 
-    generate_btn = gr.Button("🎬 Generate Video", variant="primary", size="lg")
+        with gr.Column(scale=2):
+            concept = gr.Textbox(
+                label="Concept",
+                placeholder="e.g., Quantum Physics, Golden Orb, Ancient Library",
+                lines=2
+            )
+
+            action = gr.Textbox(
+                label="Scene Action",
+                placeholder="e.g., the orb pulses with light as it discovers an old book",
+                lines=3
+            )
+
+            generate_btn = gr.Button(
+                "🎬 Generate Video", variant="primary", size="lg")
 
     with gr.Row():
-        video_output = gr.Video(label="Generated Video", height=400)
+        video_output = gr.Video(label="Generated Result", height=400)
 
     status_output = gr.Textbox(
-        label="Status",
+        label="Status / Metadata",
         interactive=False,
         lines=2,
-        placeholder="Status messages will appear here..."
+        placeholder="System logs will appear here..."
     )
 
     # Connect the function
     generate_btn.click(
-        fn=generate_video,
+        fn=generate_video_ui,
         inputs=[provider, concept, action, duration, style],
         outputs=[video_output, status_output]
     )
 
     gr.Markdown("""
-    ### About Ministudio
-    - **Model-Agnostic**: Works with multiple AI providers
-    - **State Management**: Maintains visual consistency
-    - **Configurable**: Customize all generation parameters
-    - **Extensible**: Easy to add new providers and styles
-
-    ### Tips
-    - Start with the "mock" provider to test without API keys
-    - Use descriptive concepts and actions for better results
-    - Experiment with different styles for varied aesthetics
-    - Longer durations may take more time and cost more
-
-    Made with ❤️ for the AI video generation community
+    ### 🧠 Why Ministudio?
+    - **Stateful**: Maintains character & environment consistency.
+    - **Model-Agnostic**: Switch between Google Veo, Sora, and others instantly.
+    - **Programmatic**: Code-as-Video configuration system.
     """)
 
 
 if __name__ == "__main__":
-    # Launch the web UI
+    # Launch the web UI with Gradio 6.0 compatible parameters
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        show_api=False,
-        share=False  # Set to True for public sharing via Gradio
+        theme=gr.themes.Soft(),
+        share=False
     )
