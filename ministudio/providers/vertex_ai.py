@@ -1,226 +1,68 @@
 """
-Google Vertex AI provider for Ministudio.
+Enhanced Vertex AI provider with URI download support
 """
-
-import time
-import asyncio
-import json
-import logging
 import os
 import re
-from typing import Any, Optional, Dict
+import json
+import time
+import asyncio
+import logging
+from typing import Optional, Dict, Any
 from google.oauth2 import service_account
+
 from .base import BaseVideoProvider
 from ..interfaces import VideoGenerationRequest, VideoGenerationResult
+from ..utils import load_gcp_credentials
 
 logger = logging.getLogger(__name__)
 
 
-def load_gcp_credentials() -> tuple[Optional[service_account.Credentials], Optional[str]]:
-    """
-    Load GCP credentials from environment variables with high resilience to escaping issues.
-
-    Supports multiple credential sources:
-    - GCP_SERVICE_ACCOUNT_JSON: Full JSON string
-    - GCP_SA_KEY: Alternative JSON string
-    - GOOGLE_APPLICATION_CREDENTIALS: Path to JSON file or JSON content
-    - Individual env vars: GCP_PROJECT_ID, GCP_CLIENT_EMAIL, GCP_PRIVATE_KEY
-
-    Returns:
-        Tuple of (credentials, project_id) or (None, None) if loading fails
-    """
-    sa_key = (
-        os.getenv("GCP_SERVICE_ACCOUNT_JSON")
-        or os.getenv("GCP_SA_KEY")
-        or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    )
-
-    if not sa_key:
-        logger.warning(
-            "No GCP credential source found in environment variables")
-        return None, None
-
-    sa_info: Optional[Dict[str, Any]] = None
-
-    # Strategy 1: Standard JSON parsing
-    if not sa_info:
-        try:
-            sa_info = json.loads(sa_key)
-            logger.info(
-                "Successfully parsed GCP key using standard JSON parsing")
-        except json.JSONDecodeError as e:
-            logger.debug(f"Standard JSON parsing failed: {e}")
-
-    # Strategy 2: ast.literal_eval fallback (for single-quoted dict strings)
-    if not sa_info:
-        try:
-            import ast
-            sa_info = ast.literal_eval(sa_key)
-            if isinstance(sa_info, dict):
-                logger.info(
-                    "Successfully parsed GCP key using ast.literal_eval")
-        except Exception as e:
-            logger.debug(f"ast.literal_eval strategy failed: {e}")
-
-    # Strategy 3: Handle escaped quotes or wrapped in quotes
-    if not sa_info:
-        try:
-            fixed = sa_key.strip()
-
-            # Remove outer quotes if present
-            if (fixed.startswith('"') and fixed.endswith('"')) or \
-               (fixed.startswith("'") and fixed.endswith("'")):
-                fixed = fixed[1:-1]
-
-            # Replace escaped quotes with regular quotes
-            fixed = fixed.replace('\\"', '"').replace("\\'", "'")
-
-            # Try JSON parsing again
-            try:
-                sa_info = json.loads(fixed)
-                logger.info(
-                    "Successfully parsed GCP key after unescaping quotes")
-            except json.JSONDecodeError:
-                # Try literal_eval on fixed string
-                import ast
-                sa_info = ast.literal_eval(fixed)
-                if isinstance(sa_info, dict):
-                    logger.info(
-                        "Successfully parsed GCP key using literal_eval after unescaping")
-        except Exception as e:
-            logger.debug(f"Escape/quote fixing strategy failed: {e}")
-
-    # Strategy 4: Regex extraction (Last Resort)
-    if not sa_info:
-        try:
-            logger.debug("Attempting regex extraction from mangled JSON...")
-
-            # Extract common fields
-            project_id_match = re.search(
-                r'["\']project_id["\']:\s*["\']([^"\']+)["\']', sa_key)
-            private_key_match = re.search(
-                r'["\']private_key["\']:\s*["\'](-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----\\n?)["\']', sa_key, re.DOTALL)
-            client_email_match = re.search(
-                r'["\']client_email["\']:\s*["\']([^"\']+)["\']', sa_key)
-
-            if project_id_match and private_key_match and client_email_match:
-                logger.info("Successfully extracted GCP fields using regex")
-                private_key = private_key_match.group(1).replace("\\n", "\n")
-                sa_info = {
-                    "type": "service_account",
-                    "project_id": project_id_match.group(1),
-                    "private_key": private_key,
-                    "client_email": client_email_match.group(1),
-                    "private_key_id": "extracted-via-regex",
-                    "client_id": "",
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                    "universe_domain": "googleapis.com",
-                }
-        except Exception as e:
-            logger.debug(f"Regex extraction failed: {e}")
-
-    # Strategy 5: Individual Secrets Fallback
-    if not sa_info:
-        project_id = os.getenv("GCP_PROJECT_ID")
-        client_email = os.getenv("GCP_CLIENT_EMAIL")
-        private_key = os.getenv("GCP_PRIVATE_KEY")
-
-        if project_id and client_email and private_key:
-            logger.info(
-                "Constructing GCP credentials from individual environment variables")
-            private_key = private_key.replace("\\n", "\n")
-            if "BEGIN PRIVATE KEY" not in private_key:
-                private_key = (
-                    f"-----BEGIN PRIVATE KEY-----\n{private_key}\n-----END PRIVATE KEY-----"
-                )
-
-            sa_info = {
-                "type": "service_account",
-                "project_id": project_id,
-                "private_key_id": os.getenv("GCP_PRIVATE_KEY_ID", "manual-id"),
-                "private_key": private_key,
-                "client_email": client_email,
-                "client_id": os.getenv("GCP_CLIENT_ID", ""),
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{client_email.replace('@', '%40')}",
-                "universe_domain": "googleapis.com",
-            }
-
-    # Final check and credential creation
-    if sa_info and isinstance(sa_info, dict):
-        try:
-            # Handle authorized user credentials differently if needed
-            if sa_info.get("type") == "authorized_user":
-                logger.warning(
-                    "Authorized user credentials detected - may need different scope handling")
-
-            credentials = service_account.Credentials.from_service_account_info(
-                sa_info, scopes=[
-                    "https://www.googleapis.com/auth/cloud-platform"]
-            )
-            project_id = sa_info.get(
-                "project_id") or sa_info.get("quota_project_id")
-            logger.info(
-                f"Successfully loaded GCP credentials for project: {project_id}")
-            return credentials, project_id
-
-        except Exception as e:
-            logger.error(
-                f"Failed to create credentials from service account info: {e}")
-
-    # Strategy 6: Application Default Credentials with explicit scopes
-    try:
-        import google.auth
-
-        logger.info("Attempting to load Application Default Credentials...")
-
-        # Check if GOOGLE_APPLICATION_CREDENTIALS is JSON content instead of a path
-        adc_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-        if adc_path and adc_path.strip().startswith("{"):
-            logger.info(
-                "GOOGLE_APPLICATION_CREDENTIALS contains JSON content, writing to temp file...")
-            temp_creds_path = "/tmp/google_creds.json"
-            with open(temp_creds_path, "w") as f:
-                f.write(adc_path)
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_creds_path
-
-        credentials, project_id = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        if credentials:
-            logger.info(f"Successfully loaded ADC for project: {project_id}")
-            return credentials, project_id
-    except Exception as e:
-        logger.debug(f"ADC fallback failed: {e}")
-
-    logger.error("All GCP credential loading strategies failed")
-    return None, None
-
-
 class VertexAIProvider(BaseVideoProvider):
-    """Google Vertex AI (Veo) provider with GCP authentication"""
+    """Google Vertex AI (Veo) provider with GCP authentication and URI download support"""
 
-    def __init__(self, project_id: Optional[str] = None, location: str = "us-central1", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self,
+                 project_id: Optional[str] = None,
+                 location: str = "us-central1",
+                 api_key: Optional[str] = None,
+                 credentials: Optional[service_account.Credentials] = None):
+
+        self.project_id = project_id
         self.location = location
-
-        # Load GCP credentials
-        self.credentials, loaded_project_id = load_gcp_credentials()
-
-        if not self.credentials:
-            raise ValueError(
-                "Failed to load GCP credentials. Please set environment variables.")
-
-        self.project_id = project_id or loaded_project_id
-        if not self.project_id:
-            raise ValueError(
-                "Project ID not provided and could not be loaded from credentials.")
-
+        self.credentials = credentials
+        self.api_key = api_key
         self._client = None
+
+        # 1. Prioritize Cloud Authentication (Vertex AI)
+        if not self.credentials:
+            try:
+                # Attempt to load Application Default Credentials or from env
+                creds, pid = load_gcp_credentials()
+                if creds:
+                    self.credentials = creds
+                    if not self.project_id:
+                        self.project_id = pid
+                        logger.debug(
+                            f"Detected GCP Project ID: {self.project_id}")
+            except Exception as e:
+                logger.debug(f"Vertex AI auth check skipped/failed: {e}")
+
+        # 2. If no Cloud credentials, fallback to API Key (AI Studio)
+        if not self.project_id and not self.credentials:
+            if not self.api_key:
+                self.api_key = os.getenv(
+                    "VERTEX_AI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+
+            if self.api_key:
+                logger.info(
+                    "Initializing in AI Studio mode (API Key detected)")
+            else:
+                raise ValueError(
+                    "Authentication failed: Could not find GCP Project ID or an API Key. "
+                    "Please set GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_API_KEY."
+                )
+        else:
+            logger.info(
+                f"Initializing in Vertex AI mode (Project: {self.project_id})")
 
     @property
     def name(self) -> str:
@@ -235,54 +77,176 @@ class VertexAIProvider(BaseVideoProvider):
             from google import genai
 
             if self._client is None:
-                self._client = genai.Client(
-                    project=self.project_id,
-                    location=self.location,
-                    vertexai=True,
-                    credentials=self.credentials
-                )
+                # Initialize client based on auth method
+                # API Key and Project/Location are mutually exclusive in the google-genai SDK
+                if self.api_key:
+                    logger.debug("Initializing Client with API Key")
+                    self._client = genai.Client(
+                        api_key=self.api_key,
+                        vertexai=False  # API keys are for AI Studio/Gemini API
+                    )
+                else:
+                    logger.debug(
+                        f"Initializing Client with Vertex AI (Project: {self.project_id})")
+                    self._client = genai.Client(
+                        project=self.project_id,
+                        location=self.location,
+                        vertexai=True,
+                        credentials=self.credentials
+                    )
+
+            # Model constraints: veo-3.1-generate-preview supports 4-8 seconds
+            duration = request.duration_seconds
+            if duration < 4:
+                logger.warning(
+                    f"Requested duration {duration}s is too short. Clamping to 4s.")
+                duration = 4
+            elif duration > 8:
+                logger.warning(
+                    f"Requested duration {duration}s is too long for preview model. Clamping to 8s.")
+                duration = 8
 
             source = types.GenerateVideosSource(prompt=request.prompt)
             config = types.GenerateVideosConfig(
                 aspect_ratio=request.aspect_ratio,
-                duration_seconds=request.duration_seconds
+                duration_seconds=duration
             )
 
+            # Use preview model (matches working script)
             operation = self._client.models.generate_videos(
                 model="veo-3.1-generate-preview",
                 source=source,
                 config=config
             )
 
-            # Poll for completion (simplified - in reality would be async)
+            # Poll for completion (using synchronous sleep as per Google docs)
+            poll_count = 0
+            max_polls = 120  # 10 minutes max
             while not operation.done:
-                await asyncio.sleep(5)
+                logger.info(
+                    "Video has not been generated yet. Checking again in 10 seconds...")
+                time.sleep(10)
                 operation = self._client.operations.get(operation)
+                poll_count += 1
+                if poll_count >= max_polls:
+                    logger.error("Video generation timed out after 10 minutes")
+                    return VideoGenerationResult(
+                        success=False,
+                        provider=self.name,
+                        generation_time=time.time() - start_time,
+                        error="Generation timed out"
+                    )
 
-            response = operation.result
-            if response and response.generated_videos:
-                video = response.generated_videos[0]
-                video_bytes = video.video.video_bytes or video.video.bytes
+            logger.info(f"Video generation completed after {poll_count * 10}s")
 
+            # Check for API errors first
+            if hasattr(operation, 'error') and operation.error:
+                error_msg = operation.error.get('message', str(operation.error)) if isinstance(
+                    operation.error, dict) else str(operation.error)
+                logger.error(f"API error: {error_msg}")
                 return VideoGenerationResult(
-                    success=True,
-                    video_bytes=video_bytes,
+                    success=False,
                     provider=self.name,
                     generation_time=time.time() - start_time,
-                    metadata={
-                        "model": "veo-3.1",
-                        "operation_id": operation.name
-                    }
+                    error=error_msg
                 )
 
+            # Get response following Google docs pattern
+            response = operation.result
+            if not response:
+                logger.error(
+                    "Error occurred while generating video - no response")
+                return VideoGenerationResult(
+                    success=False,
+                    provider=self.name,
+                    generation_time=time.time() - start_time,
+                    error="No response from video generation"
+                )
+
+            generated_videos = response.generated_videos
+            if not generated_videos:
+                logger.error("No videos were generated")
+                return VideoGenerationResult(
+                    success=False,
+                    provider=self.name,
+                    generation_time=time.time() - start_time,
+                    error="No videos in response"
+                )
+
+            logger.info(f"Generated {len(generated_videos)} video(s)")
+
+            # Get the first video
+            generated_video = generated_videos[0]
+            if not generated_video.video:
+                logger.error("Video object is empty")
+                return VideoGenerationResult(
+                    success=False,
+                    provider=self.name,
+                    generation_time=time.time() - start_time,
+                    error="Video object is empty"
+                )
+
+            # Extract video bytes - try different attributes
+            video_bytes = None
+            video_obj = generated_video.video
+
+            if hasattr(video_obj, 'video_bytes') and video_obj.video_bytes:
+                video_bytes = video_obj.video_bytes
+            elif hasattr(video_obj, 'bytes') and video_obj.bytes:
+                video_bytes = video_obj.bytes
+            elif hasattr(video_obj, 'uri'):
+                # If it's a URI, we need to download it
+                logger.info(f"Video stored at URI: {video_obj.uri}")
+                try:
+                    import requests
+                    from google.auth.transport.requests import Request as AuthRequest
+
+                    if not self.credentials.valid:
+                        auth_req = AuthRequest()
+                        self.credentials.refresh(auth_req)
+
+                    headers = {
+                        "Authorization": f"Bearer {self.credentials.token}"}
+                    resp = requests.get(
+                        video_obj.uri, headers=headers, timeout=300)
+                    resp.raise_for_status()
+                    video_bytes = resp.content
+                    logger.info(
+                        f"Downloaded video from URI: {len(video_bytes)} bytes")
+                except Exception as e:
+                    logger.error(f"Failed to download video from URI: {e}")
+                    return VideoGenerationResult(
+                        success=False,
+                        provider=self.name,
+                        generation_time=time.time() - start_time,
+                        error=f"Failed to download video: {e}"
+                    )
+
+            if not video_bytes:
+                logger.error("Could not extract video bytes from video object")
+                logger.debug(f"Video object attributes: {dir(video_obj)}")
+                return VideoGenerationResult(
+                    success=False,
+                    provider=self.name,
+                    generation_time=time.time() - start_time,
+                    error="Could not extract video bytes"
+                )
+
+            logger.info(
+                f"Successfully extracted video: {len(video_bytes)} bytes")
             return VideoGenerationResult(
-                success=False,
+                success=True,
+                video_bytes=video_bytes,
                 provider=self.name,
                 generation_time=time.time() - start_time,
-                error="No video generated"
+                metadata={
+                    "model": "veo-3.1",
+                    "operation_id": operation.name
+                }
             )
 
         except Exception as e:
+            logger.error(f"Video generation error: {e}", exc_info=True)
             return VideoGenerationResult(
                 success=False,
                 provider=self.name,

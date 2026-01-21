@@ -28,7 +28,11 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "gradio",
-    "moviepy"
+    "moviepy",
+    "google-cloud-texttospeech",
+    "boto3",
+    "pillow",
+    "numpy"
 ]
 
 [project.optional-dependencies]

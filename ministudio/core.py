@@ -43,13 +43,23 @@ class StyleConfig:
 
 @dataclass
 class VideoTemplate:
-    """Reusable template (Legacy/Placeholder)"""
+    """Reusable template for specific types of videos"""
     name: str
     description: str
     duration: int = 8
+    mood: str = "magical"
+    style: str = "ghibli"
+    prompt_template: str = "{action}"
+    variables: Dict[str, Any] = field(default_factory=dict)
 
     def render_prompt(self, **kwargs):
-        return ""
+        data = self.variables.copy()
+        data.update(kwargs)
+        try:
+            return self.prompt_template.format(**data)
+        except KeyError as e:
+            logger.warning(f"Template rendering missing variable: {e}")
+            return self.prompt_template
 
 
 # ============================================

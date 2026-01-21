@@ -5,6 +5,7 @@ The "Kubernetes like Controller" that coordinates State, Compilation, and Execut
 
 import copy
 import logging
+import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -12,19 +13,26 @@ from .config import VideoConfig, DEFAULT_CONFIG, SceneConfig, ShotConfig, ShotTy
 from .state import VideoStateMachine
 from .compiler import ProgrammaticPromptCompiler
 from .interfaces import VideoProvider, VideoGenerationResult, VideoGenerationRequest
-from .utils import extract_last_frames
-from .audio import AudioRequest, AudioProvider, MockAudioProvider
+from .utils import extract_last_frames, merge_production
+from .audio import AudioRequest, AudioProvider, MockAudioProvider, GoogleTTSProvider
+from .s3_utils import S3Uploader
 
 logger = logging.getLogger(__name__)
 
 
 class VideoOrchestrator:
-    def __init__(self, provider: VideoProvider):
+    def __init__(self, provider: VideoProvider, audio_provider: Optional[AudioProvider] = None):
         self.provider = provider
         # Each orchestrator manages a specific state machine (like a specific deployment)
         self.state_machine = VideoStateMachine()
         self.compiler = ProgrammaticPromptCompiler()
-        self.audio_provider = MockAudioProvider()  # Default audio provider
+
+        # Try to shared credentials from provider if it's a VertexAIProvider
+        credentials = getattr(provider, "credentials", None)
+
+        self.audio_provider = audio_provider or GoogleTTSProvider(
+            credentials=credentials)
+        self.s3_uploader = S3Uploader()
 
     async def schedule_generation(self,
                                   concept: str,
@@ -127,11 +135,34 @@ class VideoOrchestrator:
 
         # Update state machine with scene-level characters and environment
         scene_base_config = copy.deepcopy(base_config)
-        scene_base_config.characters.update(scene.characters)
+
+        # Merge scene characters: preserve identity, update transient state
+        for name, char in scene.characters.items():
+            if name in scene_base_config.characters:
+                existing = scene_base_config.characters[name]
+                if hasattr(char, 'identity') and char.identity:
+                    existing.identity.update(char.identity)
+                if hasattr(char, 'current_state') and char.current_state:
+                    existing.current_state.update(char.current_state)
+            else:
+                scene_base_config.characters[name] = char
+
         if scene.environment:
-            scene_base_config.environment = scene.environment
+            if scene_base_config.environment and scene_base_config.environment.location == scene.environment.location:
+                if hasattr(scene.environment, 'identity') and scene.environment.identity:
+                    scene_base_config.environment.identity.update(
+                        scene.environment.identity)
+                if hasattr(scene.environment, 'current_context') and scene.environment.current_context:
+                    scene_base_config.environment.current_context.update(
+                        scene.environment.current_context)
+            else:
+                scene_base_config.environment = scene.environment
 
         self.state_machine.update_from_config(scene_base_config)
+
+        # Define output directory from config
+        output_dir = Path(scene_base_config.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         results = []
         last_frames = []
@@ -168,12 +199,24 @@ class VideoOrchestrator:
                 continuity_frames = last_frames
 
             # Character and Background samples
-            char_samples = {
-                name: char.reference_images
-                for name, char in shot_config.characters.items()
-                if char.reference_images
-            }
+            char_samples = {}
+            for name, char in shot_config.characters.items():
+                samples = []
+                # Prioritize visual anchor as the first and most important sample
+                if hasattr(char, 'visual_anchor_path') and char.visual_anchor_path:
+                    samples.append(char.visual_anchor_path)
+
+                # Add remainder of reference images
+                if char.reference_images:
+                    samples.extend(char.reference_images)
+
+                if samples:
+                    char_samples[name] = samples
+
             bg_samples = shot_config.environment.reference_images if shot_config.environment else []
+            if hasattr(shot_config.environment, 'visual_anchor_path') and shot_config.environment.visual_anchor_path:
+                bg_samples = [
+                    shot_config.environment.visual_anchor_path] + bg_samples
 
             # Compile prompt
             final_prompt = self.compiler.compile(shot_config)
@@ -225,7 +268,9 @@ class VideoOrchestrator:
 
             # Save the video shot immediately so we have a path for continuity extraction
             if result.success and result.video_bytes and output_dir:
-                filename = f"scene_{scene.concept.replace(' ', '_')}_shot_{len(results)}_{int(time.time())}.mp4"
+                # Use a more sequential naming pattern: shot_001, shot_002, etc.
+                shot_idx_str = str(len(results)).zfill(3)
+                filename = f"shot_{shot_idx_str}_{int(time.time())}.mp4"
                 video_path = output_dir / filename
                 video_path.write_bytes(result.video_bytes)
                 result.video_path = video_path
@@ -251,3 +296,43 @@ class VideoOrchestrator:
                 self.state_machine.next_scene()
 
         return results
+
+    async def generate_production(self,
+                                  scene: SceneConfig,
+                                  base_config: Optional[VideoConfig] = None,
+                                  output_filename: Optional[str] = None,
+                                  upload_to_s3: bool = False) -> Dict[str, Any]:
+        """
+        Generate a full production: multiple shots merged with audio and subtitles.
+        """
+        if base_config is None:
+            base_config = VideoConfig()
+
+        output_dir = Path(base_config.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # 1. Generate all shots
+        results = await self.generate_scene(scene, base_config)
+
+        # 2. Extract scripts for overlays
+        scripts = [shot.narration or shot.dialogue for shot in scene.shots]
+
+        # 3. Merge into final production
+        timestamp = int(time.time())
+        final_filename = output_filename or f"production_{scene.concept.replace(' ', '_')}_{timestamp}.mp4"
+        final_path = output_dir / final_filename
+
+        success = merge_production(results, final_path, scripts)
+
+        response = {
+            "success": success,
+            "local_path": str(final_path) if success else None,
+            "results": results
+        }
+
+        # 4. Upload to S3 if requested
+        if success and upload_to_s3:
+            s3_url = self.s3_uploader.upload_file(final_path)
+            response["s3_url"] = s3_url
+
+        return response

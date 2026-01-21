@@ -26,6 +26,17 @@ class ProgrammaticPromptCompiler:
     def compile(self, config: VideoConfig) -> str:
         sections: List[str] = []
 
+        # 0. GLOBAL IDENTITY & CONSISTENCY (Authoritative anchors)
+        global_identity = ["CRITICAL: MAINTAIN ABSOLUTE VISUAL CONSISTENCY"]
+        if config.characters:
+            char_names = ", ".join(config.characters.keys())
+            global_identity.append(
+                f"- Characters {char_names} MUST look identical to previous shots.")
+        if config.environment:
+            global_identity.append(
+                f"- Background ({config.environment.location}) MUST remain stationary and unchanged.")
+        sections.append("\n".join(global_identity))
+
         # 1. CHARACTER DNA
         if config.characters:
             sections.append(self._compile_characters(config.characters))
@@ -63,37 +74,89 @@ class ProgrammaticPromptCompiler:
         return "\n\n".join(sections)
 
     def _compile_characters(self, characters: dict) -> str:
-        lines = ["CHARACTER SPECIFICATION:"]
+        lines = ["GLOBAL CHARACTER IDENTITY (PERSISTENT ANCHORS):"]
+        lines.append(
+            "CRITICAL: THE FOLLOWING FEATURES ARE STATIC AND MUST NOT CHANGE ACROSS SHOTS.")
+
         for name, char in characters.items():
             desc = f"- {name}:"
-            if char.genetics:
+
+            # Grounding Instructions
+            grounding = []
+            if hasattr(char, 'identity') and any(char.identity.values()):
+                id_stats = char.identity
+                if id_stats.get("hair_style") or id_stats.get("hair_color"):
+                    grounding.append(
+                        f"HAIR: {id_stats.get('hair_style')} ({id_stats.get('hair_color')})")
+                if id_stats.get("eye_color"):
+                    grounding.append(f"EYES: {id_stats.get('eye_color')}")
+                if id_stats.get("face_shape") or id_stats.get("skin_tone"):
+                    grounding.append(
+                        f"FACE: {id_stats.get('face_shape')} skin, {id_stats.get('skin_tone')} tone")
+
+                # Add remainder of identity
+                other_identity = {k: v for k, v in id_stats.items() if k not in [
+                    "hair_style", "hair_color", "eye_color", "face_shape", "skin_tone"] and v}
+                if other_identity:
+                    grounding.append(
+                        f"FEATURES: {self._dict_to_readable(other_identity)}")
+
+            if grounding:
+                desc += f" [STRICT ANCHORS: {', '.join(grounding)}]"
+            elif char.genetics:
                 desc += f" {self._dict_to_readable(char.genetics)}"
-            if char.reference_images:
+
+            if hasattr(char, 'visual_anchor_path') and char.visual_anchor_path:
+                desc += f" (CRITICAL: REPLICATE THE FACE IN THE PROVIDED PORTRAIT ANCHOR EXACTLY)"
+            elif char.reference_images:
                 desc += f" (Referencing visual samples of {name})"
-            if char.motion_library:
-                desc += f" Motion: {self._dict_to_readable(char.motion_library)}"
+
             lines.append(desc)
+
+            # Local state for characters
+            if hasattr(char, 'current_state') and any(char.current_state.values()):
+                lines.append(
+                    f"  CURRENT STATE (SHOT-SPECIFIC): {self._dict_to_readable(char.current_state)}")
+
+            if char.motion_library:
+                lines.append(
+                    f"  Motion: {self._dict_to_readable(char.motion_library)}")
+
         return "\n".join(lines)
 
     def _compile_environment(self, env: Environment) -> str:
-        lines = ["ENVIRONMENT:"]
+        lines = ["ENVIRONMENT IDENTITY (PERSISTENT BACKGROUND):"]
         lines.append(f"- Location: {env.location}")
+
+        # Identity (Fixed architecture/base)
+        if hasattr(env, 'identity') and any(env.identity.values()):
+            lines.append(
+                f"- Visual Base: {self._dict_to_readable(env.identity)}")
+
+        # Local Context (Lighting, dynamic props)
+        if hasattr(env, 'current_context') and any(env.current_context.values()):
+            lines.append(
+                f"- Current Scene Context: {self._dict_to_readable(env.current_context)}")
+
         if env.reference_images:
             lines.append(
                 f"- Visual Identity: Matching provided background samples")
-        if env.physics:
-            lines.append(f"- Physics: {self._dict_to_readable(env.physics)}")
         if env.composition:
             lines.append(
                 f"- Composition: {self._dict_to_readable(env.composition)}")
         return "\n".join(lines)
 
     def _compile_cinematography(self, cine: Cinematography) -> str:
-        lines = ["CINEMATOGRAPHY:"]
+        lines = ["CINEMATOGRAPHY & LIP SYNC:"]
         active = cine.camera_behaviors.get(cine.active_camera)
         if active:
             lines.append(
                 f"- Camera: {active.lens}, {active.aperture}, movement: {active.movement_style}")
+
+        # Add Lip Sync instruction if dialogue is expected
+        lines.append(
+            "- CRITICAL: If a character is speaking, ensure their lips sync perfectly with the dialogue.")
+
         if cine.shot_composition_rules:
             lines.append(
                 f"- Rules: {self._dict_to_readable(cine.shot_composition_rules)}")

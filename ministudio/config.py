@@ -76,10 +76,35 @@ class ParticleSystem:
 class Character:
     """Genetics and behavioral programming for a character"""
     name: str = "unknown"
+
+    # GLOBAL IDENTITY (Static across scenes)
+    identity: Dict[str, Any] = field(default_factory=lambda: {
+        "hair_style": "",
+        "hair_color": "",
+        "eye_color": "",
+        "skin_tone": "",
+        "face_shape": "",
+        "height_build": ""
+    })
+
+    # LOCAL STATE (Changes per scene/shot)
+    current_state: Dict[str, Any] = field(default_factory=lambda: {
+        "clothing": "",
+        "equipment": "",
+        "emotion": "neutral",
+        "posture": ""
+    })
+
+    # Legacy/Extended genetics (merged into identity for compilation)
     genetics: Dict[str, Any] = field(default_factory=dict)
     motion_library: Dict[str, str] = field(default_factory=dict)
     emotional_palette: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+    # VISUAL ANCHORS (Reference images for identity grounding)
     reference_images: List[str] = field(default_factory=list)
+    # Path to a "Master Close-up" for identity grounding
+    visual_anchor_path: Optional[str] = None
+
     voice_id: Optional[str] = None  # ID for ElevenLabs/Google TTS
     voice_profile: Optional[VoiceProfile] = None
 
@@ -93,6 +118,22 @@ class Character:
 class Environment:
     """Physics and world rules"""
     location: str = "void"
+
+    # GLOBAL IDENTITY (Base architecture)
+    identity: Dict[str, Any] = field(default_factory=lambda: {
+        "architecture_style": "",
+        "fixed_elements": "",
+        "base_color_palette": ""
+    })
+
+    # LOCAL STATE (Lighting, weather, dynamic props)
+    current_context: Dict[str, Any] = field(default_factory=lambda: {
+        "lighting": "",
+        "weather": "",
+        "dynamic_props": "",
+        "time_of_day": ""
+    })
+
     physics: Dict[str, Any] = field(default_factory=dict)
     generation_rules: Dict[str, Any] = field(default_factory=dict)
     composition: Dict[str, Any] = field(default_factory=dict)

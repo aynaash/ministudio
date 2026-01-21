@@ -107,16 +107,36 @@ class VideoStateMachine:
         if config.characters:
             # Merge/Update characters
             for name, char in config.characters.items():
-                self.characters[name] = char
+                if name in self.characters:
+                    # Update existing character: Preserve existing identity if not provided,
+                    # but allow updates to current_state
+                    existing = self.characters[name]
+                    if hasattr(char, 'identity') and any(char.identity.values()):
+                        existing.identity.update(char.identity)
+                    if hasattr(char, 'current_state') and any(char.current_state.values()):
+                        existing.current_state.update(char.current_state)
+                    # Sync other fields
+                    existing.voice_id = char.voice_id or existing.voice_id
+                    existing.voice_profile = char.voice_profile or existing.voice_profile
+                else:
+                    self.characters[name] = char
 
         if config.environment:
-            self.environment = config.environment
+            if self.environment and config.environment.location == self.environment.location:
+                # Update existing environment context
+                if hasattr(config.environment, 'identity') and any(config.environment.identity.values()):
+                    self.environment.identity.update(
+                        config.environment.identity)
+                if hasattr(config.environment, 'current_context') and any(config.environment.current_context.values()):
+                    self.environment.current_context.update(
+                        config.environment.current_context)
+            else:
+                self.environment = config.environment
 
         if config.style_dna:
             self.style = config.style_dna
 
-        # Conflict matrix update (if provided in custom_metadata or scene_config)
-        # Note: In a real impl, we'd have a formal conflict field in VideoConfig
+        # Conflict matrix update
         if hasattr(config, 'conflict_matrix') and config.conflict_matrix:
             self.conflict_matrix.update(config.conflict_matrix)
 
