@@ -1,6 +1,11 @@
 fastapi
 uvicorn[standard]
 gradio
+moviepy
+google-cloud-texttospeech
+boto3
+pillow
+numpy
 
 [all]
 google-genai

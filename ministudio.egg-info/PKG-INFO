@@ -1,12 +1,11 @@
 Metadata-Version: 2.4
 Name: ministudio
-Version: 0.1.0
+Version: 0.1.1
 Summary: Model-Agnostic AI Video Generation Framework
 Author-email: Ministudio Team <team@ministudio.ai>
-License: MIT
+License-Expression: MIT
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
@@ -19,6 +18,11 @@ Description-Content-Type: text/markdown
 Requires-Dist: fastapi
 Requires-Dist: uvicorn[standard]
 Requires-Dist: gradio
+Requires-Dist: moviepy
+Requires-Dist: google-cloud-texttospeech
+Requires-Dist: boto3
+Requires-Dist: pillow
+Requires-Dist: numpy
 Provides-Extra: vertex-ai
 Requires-Dist: google-genai; extra == "vertex-ai"
 Provides-Extra: openai
@@ -29,255 +33,86 @@ Requires-Dist: google-genai; extra == "all"
 Requires-Dist: openai; extra == "all"
 Requires-Dist: requests; extra == "all"
 
-# Ministudio
+# MiniStudio: The Cinematic AI Engine 🎬✨
 
-**Model-Agnostic AI Video Framework**
+**Programmable, Stateful, and Model-Agnostic Orchestration for High-Fidelity Video Production.**
 
-*"Make AI video generation as consistent as CSS makes web styling"*
-
-Python package for generating consistent AI videos across different providers.
-
-## Installation
-
-```bash
-pip install ministudio
-```
-
-With provider support:
-```bash
-pip install ministudio[vertex-ai]  # Google Vertex AI
-pip install ministudio[openai]     # OpenAI Sora
-pip install ministudio[all]        # All providers
-```
-
-## Quick Start
-
-### Basic Usage
-```bash
-# Mock provider (no API keys needed)
-ministudio --provider mock --concept "Hello World" --action "orb waving"
-```
-
-### Real Providers
-```bash
-# Google Vertex AI
-export GCP_PROJECT_ID="your-project-id"
-ministudio --provider vertex-ai --concept "Nature" --action "forest growing"
-
-# OpenAI Sora
-export OPENAI_API_KEY="your-key"
-ministudio --provider openai-sora --concept "Ocean" --action "waves crashing"
-```
-
-### Python API
-```python
-from ministudio import Ministudio
-
-provider = Ministudio.create_provider("mock")
-studio = Ministudio(provider=provider)
-
-result = await studio.generate_concept_video(
-    concept="Math",
-    action="orb solving equations"
-)
-```
-
-## Features
-
-- **Model-Agnostic**: Swap AI providers without changing code
-- **State Management**: Maintain visual consistency across generations
-- **Configurable**: Customize all video generation parameters
-- **Segmentation**: Generate long-form videos with state persistence
-- **Multiple Providers**: Google Vertex AI, OpenAI Sora, Local models, Mock
-- **Templates**: Pre-built styles for different use cases
-- **API Server**: Self-hosted REST API
-- **Docker**: Containerized deployment
-
-## Key Value: State Persistence in Segmented Generations
-
-Ministudio's core innovation is **stateful prompt programming** for AI video generation. Unlike traditional AI video tools that generate each segment independently (leading to visual inconsistencies), Ministudio maintains persistent state across video segments.
-
-### Why It Matters for Developers
-
-- **Consistent Visual Continuity**: Characters, backgrounds, and objects maintain their attributes throughout the entire video
-- **Complex Storytelling**: Create long-form narratives with evolving scenes while preserving context
-- **Reusable State Management**: Define state updates between segments for dynamic, adaptive content
-- **Scalable Video Production**: Build videos of any length with predictable, consistent results
-
-### Developer Benefits
-
-This state persistence enables developers to:
-- Build reliable AI video applications where consistency is critical
-- Create complex multi-scene videos without manual intervention
-- Maintain brand consistency across generated content
-- Scale video production workflows with programmatic control
-
-### Example: Long-Form Storytelling
-
-```python
-from ministudio import Ministudio
-
-studio = Ministudio(provider=provider)
-
-segments = [
-    {"concept": "Introduction", "action": "hero enters mystical forest"},
-    {"concept": "Discovery", "action": "hero finds ancient artifact", 
-     "state_updates": {"character": {"inventory": ["artifact"]}}},
-    {"concept": "Challenge", "action": "hero battles guardian with artifact power",
-     "state_updates": {"character": {"power": "enhanced"}}},
-    {"concept": "Resolution", "action": "hero returns home transformed"}
-]
-
-results = await studio.generate_segmented_video(segments)
-```
-
-Each segment builds on the previous state - the hero consistently has the artifact and enhanced power in later scenes, creating seamless, coherent video narratives.
-
-## Usage
-
-### Basic Generation
-```python
-from ministudio import Ministudio, VideoConfig
-
-provider = Ministudio.create_provider("mock")
-studio = Ministudio(provider=provider)
-
-result = await studio.generate_concept_video(
-    concept="Science",
-    action="orb demonstrating physics"
-)
-```
-
-### Configurable Generation
-```python
-from ministudio import VideoConfig
-
-config = VideoConfig(
-    duration_seconds=12,
-    style_name="cinematic",
-    mood="dramatic"
-)
-
-result = await studio.generate_concept_video(
-    concept="Adventure",
-    action="hero exploring cave",
-    config=config
-)
-```
-
-### Segmented Videos (Long-form)
-```python
-segments = [
-    {"concept": "Intro", "action": "character enters scene"},
-    {"concept": "Action", "action": "character finds treasure", "state_updates": {"character": {"holding": "treasure"}}},
-    {"concept": "Climax", "action": "character escapes"}
-]
-
-results = await studio.generate_segmented_video(segments, config)
-```
-
-## Providers
-
-| Provider | Setup | Status |
-|----------|-------|--------|
-| Mock | None | Ready |
-| Google Vertex AI | `GCP_PROJECT_ID` env var | Ready |
-| OpenAI Sora | `OPENAI_API_KEY` env var | Ready |
-| Local | Model path | Ready |
-
-## Styles & Templates
-
-### Built-in Styles
-- `ghibli`: Studio Ghibli aesthetic
-- `cyberpunk`: Neon cyberpunk style
-- `cinematic`: Hollywood filmmaking
-- `realistic`: Photorealistic
-
-### Templates
-- `explainer`: Educational content
-- `marketing`: Promotional videos
-- `cinematic`: Cinematic scenes
-
-## API Server
-
-Run self-hosted API:
-```bash
-uvicorn ministudio.api:app --host 0.0.0.0 --port 8000
-```
-
-## Docker
-
-```bash
-docker build -t ministudio .
-docker run -p 8000:8000 ministudio
-```
-
-## API Reference
-
-### Ministudio Class
-- `generate_concept_video(concept, action, config=None)`
-- `generate_segmented_video(segments, base_config=None)`
-
-### VideoConfig Class
-- Configurable parameters: duration, aspect_ratio, style, provider, etc.
-
-### Providers
-- `Ministudio.create_provider(type, **kwargs)`
-
-## Philosophy
-
-Ministudio exists because AI video generation is powerful but inconsistent. We believe every developer should be able to create professional videos, AI should enhance creativity when making videos, open ecosystems beat walled gardens, consistency is programmable with proper state  management, and the best tools get out of the way.
-
-We're building the standard framework for AI video generation - model-agnostic, stateful, and extensible.
-
-## Contributing
-
-We welcome contributions! This guide explains how to get started.
-
-### Development Setup
-
-```bash
-git clone https://github.com/aynaash/ministudio.git
-cd ministudio
-pip install -e .[all]
-```
-
-### Code Quality
-
-```bash
-# Format
-black ministudio/
-
-# Lint  
-ruff check ministudio/
-
-# Test
-pytest
-```
-
-### Adding Providers
-
-Extend `BaseVideoProvider` and implement `generate_video()` method.
-
-### Pull Requests
-
-- Reference issues
-- Clear descriptions
-- Include tests
-- Follow code style
-
-Thank you for contributing to Ministudio! 
-
-## License
-
-MIT License
-
-## Acknowledgments
-
-Inspired by the open-source AI community's work on making AI accessible and consistent.
+MiniStudio transforms the chaotic world of generative AI into a structured filmmaking pipeline. It solves the "Consistency Problem" by treating video like code—enforcing character identity, environment stability, and temporal continuity through a state-machine driven architecture.
 
 ---
 
-**Made with by the AI video generation community**
+## 🎬 See it in Action
 
-*Ready to make AI video generation consistent? Let's build the future together.*
+The "Why" behind this project and the high-fidelity results (Ghibli 2.0, The Last Algorithm) are documented in detail on my personal site:
+
+### **👉 [Read the Full Article: Programmable Cinematography](https://www.hersi.dev/blog/ministudio)**
+
+---
+
+## 🛠️ The Architecture: How it Works
+
+MiniStudio uses a three-layer stack to ensure your characters don't "drift" between shots.
+
+1.  **Identity Grounding 2.0**: We use "Master Reference" portraits (Visual Anchors) that are injected into every injection step, ensuring **Emma** looks like **Emma** in Shot 1 and Shot 60.
+2.  **The Invisible Weave**: A state-machine that "remembers" the environment geometry. If you move the camera 45 degrees, the engine knows what *should* be there.
+3.  **Sequential Memory**: Each generation is grounded by the final frames of the previous shot, creating a perfect temporal link.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Installation
+```bash
+pip install -e .
+```
+
+### 2. Configure Credentials
+MiniStudio supports **Vertex AI (Veo 3.1)** and **Google TTS**. 
+
+#### Using Doppler (Recommended)
+[Doppler](https://www.doppler.com/) is a multi-platform secret manager. If you use it, you can run:
+```bash
+doppler run -- python examples/contextbytes_brand_story.py
+```
+
+#### Using .env or Environment Variables
+If you don't use Doppler, simply create a `.env` file or export your variables directly:
+```bash
+export GOOGLE_API_KEY="your-key-here"
+# or
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/key.json"
+```
+
+### 3. Your First Shot
+```python
+from ministudio import VideoOrchestrator, VertexAIProvider
+
+# Initialize the Director
+orchestrator = VideoOrchestrator(VertexAIProvider())
+
+# Define a Shot
+shot = ShotConfig(
+    action="A lone researcher discovers a glowing orb.",
+    characters={"Emma": EMMA_STRICT_ID},
+    duration_seconds=8
+)
+
+# Produce
+await orchestrator.generate_shot(shot)
+```
+
+---
+
+## ⚠️ Challenges & Roadmap (AI Filmmaking 2.0)
+
+We are currently pushing the boundaries of what is possible. Current research areas included in our **[Production Journal](PRODUCTION_JOURNAL.md)**:
+- **Audio-Sync Lag**: Refining the waveform orchestrator to eliminate the 0.5s voice/video drift.
+- **Environment Shimmer**: Implementing 2-pass background locking.
+- **Character Masks**: Forcing the AI to paint "over" a locked environment plate.
+
+---
+
+## 🤝 Contributing & Community
+MiniStudio is built by the community for the community. See **[ROADMAP.md](ROADMAP.md)** for our upcoming features.
+
+**Made with ❤️ for the future of cinema.**
