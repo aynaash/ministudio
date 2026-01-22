@@ -155,6 +155,17 @@ class Camera:
 
 
 @dataclass
+class Persona:
+    """AI Personality and expertise instructions"""
+    name: str = "Assistant"
+    description: str = ""
+    expertise: List[str] = field(default_factory=list)
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
 class Cinematography:
     """Camera direction and shot composition"""
     camera_behaviors: Dict[str, Camera] = field(default_factory=dict)
@@ -172,7 +183,8 @@ class ShotConfig:
     action: str = ""
     camera_movement: str = "static"
     continuity_required: bool = True
-    duration_seconds: int = 4
+    # Set to None for auto-calculation based on narration
+    duration_seconds: Optional[int] = 4
 
     # Programmable Cuts: Overrides for this specific shot
     characters: Optional[Dict[str, Character]] = None
@@ -310,6 +322,9 @@ class VideoConfig:
     # Custom parameters
     custom_metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # Persona / Actor Profile
+    persona: Optional[Persona] = None
+
     # --- Programmable "Code-as-Video" Components ---
     characters: Dict[str, Character] = field(default_factory=dict)
     environment: Optional[Environment] = None
@@ -377,6 +392,9 @@ class VideoConfig:
         if 'continuity' in d and isinstance(d['continuity'], dict):
             d['continuity'] = ContinuityEngine(**d['continuity'])
 
+        if 'persona' in d and isinstance(d['persona'], dict):
+            d['persona'] = Persona(**d['persona'])
+
         return cls(**d)
 
     @classmethod
@@ -425,6 +443,8 @@ class VideoConfig:
             base['style_dna'] = self.style_dna.to_dict()
         if self.continuity:
             base['continuity'] = self.continuity.to_dict()
+        if self.persona:
+            base['persona'] = self.persona.to_dict()
 
         return base
 
@@ -436,6 +456,20 @@ class VideoConfig:
 
         return json.dumps(self.to_dict(), indent=indent, default=default_serializer)
 
+
+# Predefined personas
+DEFAULT_PERSONA = Persona(
+    name="Master Filmmaker",
+    description=(
+        "You are a master filmmaker and cinematographer. You have deep technical knowledge of visual storytelling, "
+        "camera technicalities, and emotional pacing. Your goal is to translate abstract concepts into "
+        "visually stunning, technically precise video descriptions."
+    ),
+    expertise=[
+        "wide angle shots", "foreground/background depth", "focal point precision",
+        "focus pulling", "dynamic camera movement", "lighting theory", "color grading"
+    ]
+)
 
 # Predefined configurations
 DEFAULT_CONFIG = VideoConfig()

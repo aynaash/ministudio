@@ -22,6 +22,7 @@ class VideoGenerationRequest:
     starting_frames: Optional[List[str]] = None
     character_samples: Optional[Dict[str, List[str]]] = None
     background_samples: Optional[List[str]] = None
+    previous_narration: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {

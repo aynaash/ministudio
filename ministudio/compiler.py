@@ -26,7 +26,21 @@ class ProgrammaticPromptCompiler:
     def compile(self, config: VideoConfig) -> str:
         sections: List[str] = []
 
-        # 0. GLOBAL IDENTITY & CONSISTENCY (Authoritative anchors)
+        # 0. PERSONA (Master Persona)
+        persona = config.persona
+        if persona:
+            persona_text = f"ROLE: {persona.name}\n{persona.description}"
+            if persona.expertise:
+                persona_text += f"\nTECHNICAL EXPERTISE: {', '.join(persona.expertise)}"
+            sections.append(persona_text)
+
+        # 0.5 PREVIOUS NARRATION (STORY CONTEXT)
+        last_narration = config.custom_metadata.get("last_narration")
+        if last_narration:
+            sections.append(
+                f"PREVIOUS NARRATION (STORY CONTEXT):\n\"{last_narration}\"\n(Use this to ensure the current shot's action and visuals flow naturally from what was just said.)")
+
+        # 1. GLOBAL IDENTITY & CONSISTENCY (Authoritative anchors)
         global_identity = ["CRITICAL: MAINTAIN ABSOLUTE VISUAL CONSISTENCY"]
         if config.characters:
             char_names = ", ".join(config.characters.keys())
@@ -74,9 +88,10 @@ class ProgrammaticPromptCompiler:
         return "\n\n".join(sections)
 
     def _compile_characters(self, characters: dict) -> str:
-        lines = ["GLOBAL CHARACTER IDENTITY (PERSISTENT ANCHORS):"]
+        lines = ["GLOBAL CHARACTER IDENTITY (IMMUTABLE ANCHORS):"]
         lines.append(
-            "CRITICAL: THE FOLLOWING FEATURES ARE STATIC AND MUST NOT CHANGE ACROSS SHOTS.")
+            "CRITICAL: THE FOLLOWING FEATURES ARE STATIC AND MUST NOT CHANGE ACROSS SHOTS. "
+            "PAY SPECIAL ATTENTION TO SKIN TONE, FACIAL PROPORTIONS, AND ART STYLE CONSISTENCY.")
 
         for name, char in characters.items():
             desc = f"- {name}:"
@@ -92,7 +107,7 @@ class ProgrammaticPromptCompiler:
                     grounding.append(f"EYES: {id_stats.get('eye_color')}")
                 if id_stats.get("face_shape") or id_stats.get("skin_tone"):
                     grounding.append(
-                        f"FACE: {id_stats.get('face_shape')} skin, {id_stats.get('skin_tone')} tone")
+                        f"FACE/SKIN: {id_stats.get('face_shape')} features with EXACT {id_stats.get('skin_tone')} skin tone.")
 
                 # Add remainder of identity
                 other_identity = {k: v for k, v in id_stats.items() if k not in [
@@ -102,14 +117,15 @@ class ProgrammaticPromptCompiler:
                         f"FEATURES: {self._dict_to_readable(other_identity)}")
 
             if grounding:
-                desc += f" [STRICT ANCHORS: {', '.join(grounding)}]"
+                desc += f" [STRICT IDENTITY LOCK: {', '.join(grounding)}]"
             elif char.genetics:
                 desc += f" {self._dict_to_readable(char.genetics)}"
 
             if hasattr(char, 'visual_anchor_path') and char.visual_anchor_path:
-                desc += f" (CRITICAL: REPLICATE THE FACE IN THE PROVIDED PORTRAIT ANCHOR EXACTLY)"
+                desc += f" (CRITICAL: YOU MUST REPRODUCE THIS CHARACTER EXACTLY AS SHOWN IN THE PROVIDED IMAGE ANCHOR. "
+                desc += f"LOCK THE ART STYLE, SKIN TONE, AND PROPORTIONS. NO DEVIATION ALLOWED.)"
             elif char.reference_images:
-                desc += f" (Referencing visual samples of {name})"
+                desc += f" (Referencing visual samples of {name} for consistency)"
 
             lines.append(desc)
 

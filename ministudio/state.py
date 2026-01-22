@@ -26,6 +26,8 @@ class WorldState:
     last_frames: List[str] = field(
         default_factory=list)  # Paths to extracted frames
     active_speaker: Optional[str] = None
+    # Text of the previous narration/dialogue
+    last_narration: Optional[str] = None
     conflict_matrix: Dict[str, str] = field(default_factory=dict)
     story_progress: Dict[str, Any] = field(default_factory=dict)
 
@@ -140,7 +142,7 @@ class VideoStateMachine:
         if hasattr(config, 'conflict_matrix') and config.conflict_matrix:
             self.conflict_matrix.update(config.conflict_matrix)
 
-    def next_scene(self, video_path: Optional[Path] = None, frames: List[str] = None, speaker: Optional[str] = None) -> WorldState:
+    def next_scene(self, video_path: Optional[Path] = None, frames: List[str] = None, speaker: Optional[str] = None, narration: Optional[str] = None) -> WorldState:
         """Advance to the next scene, committing the current state"""
         self.current_scene_id += 1
 
@@ -152,6 +154,7 @@ class VideoStateMachine:
             output_video_path=video_path,
             last_frames=frames or [],
             active_speaker=speaker,
+            last_narration=narration,
             conflict_matrix=copy.deepcopy(self.conflict_matrix)
         )
 
@@ -165,7 +168,8 @@ class VideoStateMachine:
         return VideoConfig(
             characters=self.characters,
             environment=self.environment,
-            style_dna=self.style
-            # Note: other fields like lighting/camera are per-shot and might not persist
-            # unless we add them to WorldState. For now, we assume they are per-shot.
+            style_dna=self.style,
+            custom_metadata={
+                "last_narration": self.persistence.get_last_snapshot().last_narration if self.persistence.get_last_snapshot() else None
+            }
         )

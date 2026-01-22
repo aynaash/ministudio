@@ -1,12 +1,8 @@
 """
-ContextBytes: Human & Machine Harmony (Brand Story)
-==================================================
-A 60-second Ghibli-style cinematic introduction to ContextBytes.
-Demonstrates:
-- Identity Grounding 2.0 for Emma and David
-- Complex environment transitions (Cold Lab -> Magical Garden -> Cloud Library)
-- Particle system synchronization (Teal knowledge threads)
-- High-warmth Studio TTS integration
+ContextBytes: Human & Machine Harmony (Brand Story) - FLAGSHIP 60s+ EDITION
+======================================================================
+A cinematic introduction to ContextBytes with Dynamic Duration & Narrative Flow.
+Story: Emma (Student) & David (Professional) find clarity via ContextKeeper.
 """
 
 import asyncio
@@ -16,54 +12,68 @@ from ministudio.orchestrator import VideoOrchestrator
 from ministudio.providers.vertex_ai import VertexAIProvider
 from ministudio.config import (
     VideoConfig, SceneConfig, ShotConfig, ShotType,
-    Character, Environment, StyleDNA
+    Character, Environment, StyleDNA, Persona, DEFAULT_PERSONA,
+    Cinematography, Camera, Color
 )
 
 # ============================================================================
-# CHARACTERS - Identity Grounding 2.0 (Master Portraits)
+# CINEMATOGRAPHY - Master Filmmaker Presets
+# ============================================================================
+
+PREMIUM_CINE = Cinematography(
+    camera_behaviors={
+        "chaos_pan": Camera(lens="24mm", aperture="f/4", movement_style="jittery handheld pan-through-clutter"),
+        "discovery_macro": Camera(lens="100mm", aperture="f/2.8", movement_style="focus pull from screen to face"),
+        "architecture_top": Camera(lens="35mm", aperture="f/8", movement_style="high-angle crane down"),
+        "hero_infinite": Camera(lens="50mm", aperture="f/1.8", movement_style="slow push-in to subjects")
+    },
+    shot_composition_rules={
+        "rule_of_thirds": True,
+        "leading_lines": "towards the Knowledge Orb",
+        "depth_layering": "foreground bokeh, midground subjects, background architecture"
+    }
+)
+
+# ============================================================================
+# CHARACTERS - Visual Anchor Links
 # ============================================================================
 
 EMMA = Character(
     name="Emma",
-    # IDENTITY: Persistent Ghibli Heroine features - The Researcher
     identity={
         "hair": "short chestnut brown bob, hand-drawn texture with soft bangs",
         "eyes": "large inquisitive amber eyes with detailed catchlights",
         "face": "soft round Shinkai-style face, expressive subtle smile",
+        # Absolute consistency lock
+        "skin_tone": "fair porcelain with slight pink blush on cheeks",
         "build": "slender, wearing a high-quality cerulean blue wool sweater",
         "aesthetic": "painterly Ghibli protagonist, cinematic digital painting"
     },
-    # Master Reference for Consistency
-    visual_anchor_path="path/to/emma_master_portrait.jpg",
+    visual_anchor_path="c:/Users/USER/Music/ministudio/assets/references/emma_portrait.png",
     current_state={
-        "clothing": "cerulean blue winter sweater with high neck",
-        "expression": "overwhelmed but curious"
-    },
-    voice_id="en-US-Studio-O",  # Warm, high-warmth studio narrator
-    voice_profile={"style": "warm", "pitch": 0.5}
+        "clothing": "cerulean blue winter sweater, messy desk environment"},
+    voice_id="en-US-Studio-O",  # Warm, welcoming female narrator
+    voice_profile={"style": "narrative", "pitch": 0.5}
 )
 
 DAVID = Character(
     name="David",
-    # IDENTITY: The Intellectual Professional
     identity={
         "hair": "neatly groomed short onyx black hair",
         "eyes": "deep intelligent dark eyes, scholarly focus",
         "face": "focused angular features, clean-shaven",
+        # Absolute consistency lock
+        "skin_tone": "warm bronze skin with detailed hand-drawn shadows",
         "glasses": "minimalist silver-rimmed circular glasses",
         "aesthetic": "refined professional Ghibli style"
     },
-    visual_anchor_path="path/to/david_master_portrait.jpg",
+    visual_anchor_path="c:/Users/USER/Music/ministudio/assets/references/david_portrait.png",
     current_state={
-        "clothing": "charcoal grey oxford shirt and a thick forest green scarf",
-        "expression": "searching for clarity"
-    },
-    voice_id="en-GB-Neural2-B",
-    voice_profile={"style": "narrative", "pitch": -0.5}
+        "clothing": "charcoal grey corporate shirt, forest green scarf"}
 )
 
-ORB = Character(
-    name="The ContextKeeper Orb",
+Keeper = Character(
+    name="The ContextKeeper",
     identity={
         "form": "a levitating orb of liquid golden light, tennis-ball size",
         "glow": "radiates #D4AF37 golden pulses and floating motes",
@@ -72,154 +82,165 @@ ORB = Character(
 )
 
 # ============================================================================
-# ENVIRONMENTS - From Digital Noise to Cloud Wisdom
+# ENVIRONMENTS - Chaos to Wisdom
 # ============================================================================
 
-DATA_ABYSS = Environment(
-    location="The Blue Digital Maze",
-    identity={"architecture": "endless floating screens and neon data streams"},
+CHAOTIC_DORM = Environment(
+    location="Emma's Biology Dorm",
+    identity={
+        "architecture": "cluttered bookshelves, messy desktop, stacks of biology PDFs"},
     current_context={
-        "lighting": "cold cinematic teal and glitchy white light",
-        "atmosphere": "claustrophobic, overwhelming, flickering"
-    }
+        "lighting": "dim indoor light, blue glare from multiple computer screens",
+        "atmosphere": "claustrophobic, overwhelming information overload",
+        "time_of_day": "late night study session"
+    },
+    reference_images=[
+        "c:/Users/USER/Music/ministudio/assets/references/data_abyss_bg.png"]
 )
 
-GHIBLI_ATELIER = Environment(
+CORPORATE_MAZE = Environment(
+    location="Modern Tech Office Lab",
+    identity={
+        "architecture": "glass walls, whiteboards filled with complex architecture diagrams"},
+    current_context={
+        "lighting": "slick fluorescent lighting, high-contrast shadows",
+        "atmosphere": "dry, technical, professional overwhelm",
+        "time_of_day": "busy afternoon"
+    },
+    reference_images=[
+        # Anchor for David's office vibes
+        "c:/Users/USER/Music/ministudio/assets/references/shinkai_stratosphere_bg.png"]
+)
+
+GITHUB_GARDEN = Environment(
     location="The Knowledge Garden Study",
     identity={
         "architecture": "arched mahogany bookshelves, high ceilings, spiral stairs"},
     current_context={
         "lighting": "warm afternoon sun with visible dust motes (Tyndall effect)",
-        "atmosphere": "magical, painterly, deep academic peace"
-    }
+        "atmosphere": "magical, painterly, deep academic peace",
+        "time_of_day": "golden hour"
+    },
+    reference_images=[
+        "c:/Users/USER/Music/ministudio/assets/references/ghibli_atelier_bg.png"]
 )
 
-CLOUD_STRATOSPHERE = Environment(
-    location="Infinite Library above the Clouds",
-    identity={"architecture": "crystalline glass shelves floating in the sky"},
-    current_context={
-        "lighting": "Majestic Shinkai sunset: vibrant purples, golds, and pinks",
-        "atmosphere": "transcendental, awe-inspiring, infinite"
-    }
-)
-
-# ============================================================================
-# STYLE DNA - The "WOW" Factor (Shinkai x Ghibli)
-# ============================================================================
-
-GHIBLI_AWE_2_0 = StyleDNA(
+STYLE_DNA = StyleDNA(
     traits={
         "visual_style": "Studio Ghibli hand-painted backgrounds",
         "lighting_style": "Makoto Shinkai vibrant lens flares and glowing edges",
         "color_palette": "Deep teals (#008080) transitioning to Master Gold (#D4AF37)",
-        "mood": "Cinematic intellectual breakthrough"
+        "brushwork": "Painterly, thick impasto textures on clouds",
+        "detail_level": "Ultra-high, hyper-focused foregrounds"
     },
-    references=["Spirited Away", "Your Name", "The Garden of Words"]
+    references=["Spirited Away", "Your Name"]
 )
 
 
-async def create_brand_story(sample_only: bool = False):
-    print("🎬 Starting Production: ContextBytes Brand Story (PREMIUM v2.0)...")
+async def create_brand_video():
+    print("🎬 Starting FLAGSHIP Production: ContextBytes Brand Story (Dynamic Flow)...")
 
     provider = VertexAIProvider()
     orchestrator = VideoOrchestrator(provider)
 
     scene = SceneConfig(
-        concept="From Chaos to Mastery: The ContextBytes Promise",
-        mood="Awe-inspiring and Harmonious",
-        characters={"Emma": EMMA, "David": DAVID, "The Orb": ORB},
+        concept="From Chaos to Human Wisdom",
+        mood="Intellectual, Cinematic, Magical",
+        characters={"Emma": EMMA, "David": DAVID, "Keeper": Keeper},
         shots=[
-            # Shot 1: The Descent (00-08s)
+            # 1. Emma's Struggle (Demonstrates long narration splitting)
+            ShotConfig(
+                shot_type=ShotType.WS,
+                environment=CHAOTIC_DORM,
+                action="Wide jittery pan across Emma's room. Thousands of digital windows overlap in the air—PDFs, YouTube playlists, and research articles. Emma rubs her tired eyes, looking defeated by the stacks of books and open browser tabs.",
+                narration=(
+                    "In a world where information moves faster than we can think, we often find ourselves lost. "
+                    "Emma is a brilliant student, but even she is drowning in a sea of millions of PDFs, endless playlists, "
+                    "and a thousand open tabs that lead nowhere. She's looking for wisdom, but she only finds noise."
+                ),
+                # This will be ~15s, triggering recursive splitting (8s + 7s)
+                duration_seconds=None
+            ),
+
+            # 2. The Discovery
             ShotConfig(
                 shot_type=ShotType.CU,
-                environment=DATA_ABYSS,
-                action="Close-up on Emma's eyes. Hundreds of flickering icons reflect in her amber pupils as she looks exhausted. The camera pans to her messy desk.",
-                narration="In a world of infinite data, we've lost the one thing that makes it wisdom: Context.",
-                duration_seconds=8
-            ),
-
-            # Shot 2: The Fragmented Search (08-16s)
-            ShotConfig(
-                shot_type=ShotType.MS,
-                environment=GHIBLI_ATELIER,
-                action="David stares at a mountain of books, rubbing his temples. A tiny spark of gold, the Orb, begins to swell with light in the dark corner behind him.",
-                narration="Fragments of thoughts, disconnected ideas... we're all just searching for the threads that bind them together.",
-                duration_seconds=8,
+                environment=CHAOTIC_DORM,
+                action="Close-up on Emma's laptop screen. She opens ContextBytes. A warm golden pulse radiates from the center. The Keeper orb emerges from the UI, its light cleaning the digital clutter into organized spheres.",
+                narration="Meet Emma. She didn't need more data; she needed a way to make sense of it. She found ContextBytes.",
+                duration_seconds=None,
                 continuity_required=True
             ),
 
-            # Shot 3: The Weaver (16-24s)
+            # 3. The AI Teacher
             ShotConfig(
                 shot_type=ShotType.MS,
-                environment=GHIBLI_ATELIER,
-                action="The Orb pulses brilliantly. Vibrant teal light threads emerge, physically weaving between a book in Emma's hand and a video on David's iPad.",
-                narration="Meet the ContextKeeper. It doesn't just store; it understands. It finds the invisible weave of your learning journey.",
-                duration_seconds=8,
+                environment=GITHUB_GARDEN,
+                action="Shot in the Garden Atelier. The Keeper levitates, projecting a glowing teal 3D biology model. Emma watches, her face lighting up as she finally understands. The atmosphere is peaceful.",
+                narration="Our agent, the ContextKeeper, doesn't just give answers. It guides you, explains the 'why', and organizes your path to mastery.",
+                duration_seconds=None,
                 continuity_required=True
             ),
 
-            # Shot 4: The Bloom (24-32s)
+            # 4. David's Professional Struggle
             ShotConfig(
                 shot_type=ShotType.WS,
-                environment=GHIBLI_ATELIER,
-                action="The wooden study transforms. Glowing vines of bioluminescent data grow like vines around the desk. Emma's face lights up with pure Ghibli-wonder.",
-                narration="Turning your digital workspace into a living, breathing garden of insight. From a single whisper to a total mastery.",
-                duration_seconds=8,
-                continuity_required=True
+                environment=CORPORATE_MAZE,
+                action="A high-angle shot of David in a sleek, cold tech office. He's dwarfed by skyscrapers of technical documentation and architectural specs. He looks stressed, trying to find clarity in the noise.",
+                narration=(
+                    "And then there’s David. A professional engineer lost in the giant tech machine, "
+                    "drowning in documentation, architectural specs, and complex specs that seem to have no end. "
+                    "In the corporate maze, context is the first thing that we lose."
+                ),
+                duration_seconds=None  # Split likely (8s + 4s)
             ),
 
-            # Shot 5: The Ascent (32-40s)
+            # 5. David's Clarity
             ShotConfig(
                 shot_type=ShotType.WS,
-                environment=CLOUD_STRATOSPHERE,
-                action="Emma and David walk across a glass floor in the clouds. Thousands of golden nodes (The Knowledge Graph) pulse in harmony under a Shinkai sunset.",
-                narration="It scales with your ambition. Whether you're a seeker or a pioneer—ContextBytes is your cognitive partner.",
-                duration_seconds=8,
+                environment=CORPORATE_MAZE,
+                action="The Keeper orb flies through David's office. Behind it, a beautiful glowing golden Knowledge Graph appears, physically connecting documents like a magical glowing architecture map.",
+                narration="ContextBytes reveals the invisible threads between documents—transforming a mountain of text into a clear, magical map of how everything flows.",
+                duration_seconds=None,
                 continuity_required=True
             ),
 
-            # Shot 6: Final Harmony (40-48s)
+            # 6. Final Harmony
             ShotConfig(
-                shot_type=ShotType.MS,
-                environment=CLOUD_STRATOSPHERE,
-                action="Emma and David look into the camera and smile. The Orb flies forward, its light engulfing the screen and morphing into the ContextBytes logo.",
-                narration="Deep simplicity. Modern intelligence. This is your Context, mastered. Welcome to ContextBytes.",
-                duration_seconds=8,
+                shot_type=ShotType.WS,
+                environment=GITHUB_GARDEN,
+                action="Emma and David stand on a balcony overlooking the Cloud Stratosphere. They look confident and inspired. The Keeper orb flies toward the camera, merging into the final brand signature.",
+                narration=(
+                    "From the student's desk to the corporate boardroom, the path to mastery is now clear. "
+                    "Deep simplicity. Modern intelligence. This is your Context, mastered. Welcome to ContextBytes."
+                ),
+                duration_seconds=None,
                 continuity_required=True
             )
         ]
     )
 
-    if sample_only:
-        print("🔍 SAMPLE MODE: Generating first shot only.")
-        scene.shots = [scene.shots[0]]
-
-    # Production Config
     config = VideoConfig(
-        style_dna=GHIBLI_AWE_2_0,
+        persona=DEFAULT_PERSONA,
+        style_dna=STYLE_DNA,
+        cinematography=PREMIUM_CINE,
         output_dir="./contextbytes_production",
         aspect_ratio="16:9",
-        negative_prompt="3d render, CGI, grainy, realistic photo, distorted face, inconsistent hair"
+        negative_prompt="photorealistic, 3d render, CGI, grainy, distorted face, bad anatomy, low quality"
     )
 
-    # Run production
+    # Run the production
     result = await orchestrator.generate_production(
         scene=scene,
         base_config=config,
-        output_filename="contextbytes_brand_story.mp4"
+        output_filename="contextbytes_flagship_dynamic.mp4"
     )
 
     if result["success"]:
-        print(f"✨ SUCCESS! Final brand story saved to: {result['local_path']}")
+        print(
+            f"✨ SUCCESS! Dynamic Flagship video saved to: {result['local_path']}")
     else:
         print(f"❌ FAILED: {result.get('error')}")
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="ContextBytes Brand Story Generator")
-    parser.add_argument("--sample", action="store_true",
-                        help="Generate only the first shot")
-    args = parser.parse_args()
-
-    asyncio.run(create_brand_story(sample_only=args.sample))
+    asyncio.run(create_brand_video())

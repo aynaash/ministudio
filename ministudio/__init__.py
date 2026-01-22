@@ -27,6 +27,8 @@ from .config import (
     CINEMATIC_CONFIG,
     QUICK_CONFIG,
     HIGH_QUALITY_CONFIG,
+    DEFAULT_PERSONA,
+    Persona,
     Character,
     Environment,
     Cinematography,
@@ -65,6 +67,8 @@ __all__ = [
 
     # Config & Data
     "VideoConfig",
+    "Persona",
+    "DEFAULT_PERSONA",
     "DEFAULT_CONFIG",
     "CINEMATIC_CONFIG",
     "QUICK_CONFIG",
