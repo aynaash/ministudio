@@ -10,11 +10,11 @@ Welcome to the future of **Stateful Video Generation**. MiniStudio allows develo
 **Script Path**: `examples/contextbytes_brand_story.py`  
 **Vision**: A cinematic 1-minute journey from data chaos to cloud wisdom using Studio Ghibli aesthetics.
 
-| The Production Script | The Cinematic Player |
+| The Production Script | The Result |
 | :--- | :--- |
-| **[Brand Story 2.0](examples/contextbytes_brand_story.py)** | <video src="contextbytes_production/contextbytes_brand_story.mp4" controls width="400"></video> |
-| **[The Last Algorithm](examples/complex_story_demo.py)** | <video src="the_last_algorithm/the_last_algorithm.mp4" controls width="400"></video> |
-| **[Quantum TikTok](examples/quantum_tiktok_demo.py)** | <video src="quantum_tiktok/quantum_mechanics_explained.mp4" controls width="400"></video> |
+| **[Brand Story 2.0](examples/contextbytes_brand_story.py)** | [See High-Quality Result on hersi.dev](https://www.hersi.dev/blog/ministudio) |
+| **[The Last Algorithm](examples/complex_story_demo.py)** | [See High-Quality Result on hersi.dev](https://www.hersi.dev/blog/ministudio) |
+| **[Quantum TikTok](examples/quantum_tiktok_demo.py)** | [See High-Quality Result on hersi.dev](https://www.hersi.dev/blog/ministudio) |
 
 ---
 
@@ -37,9 +37,15 @@ Generative video is evolving rapidly. Here are the current challenges we've logg
 ---
 
 ## 🛠️ How to View
-To reproduce these results, ensure your `DOPPLER_TOKEN` is set and run:
+To reproduce these results, ensure your credentials are set. We use **Doppler** (a secret manager) for security, but you can also use a standard `.env` file or environment variables.
+
+### Running with Doppler:
 ```bash
 doppler run -- python examples/contextbytes_brand_story.py
 ```
 
-Check out [GITHUB_SHOWCASE.md](GITHUB_SHOWCASE.md) for tips on presenting these videos in your own repository!
+### Running with .env / Shell:
+```bash
+python examples/contextbytes_brand_story.py
+```
+*(Ensure `GOOGLE_API_KEY` or `GOOGLE_APPLICATION_CREDENTIALS` are exported in your shell.)*

@@ -6,28 +6,11 @@ MiniStudio transforms the chaotic world of generative AI into a structured filmm
 
 ---
 
-## 📽️ Visual Showcase (Stateful Productions)
+## 🎬 See it in Action
 
-MiniStudio isn't just a wrapper; it's a director. Below are complete productions generated entirely by the engine.
+The "Why" behind this project and the high-fidelity results (Ghibli 2.0, The Last Algorithm) are documented in detail on my personal site:
 
-### 🌟 The "Ghibli 2.0" Brand Story
-*Theme: Intellectual Empowerment & Awe. Style: Studio Ghibli x Makoto Shinkai.*
-
-| 📜 The Script | 🎬 The Production (S3 Hosted) |
-| :--- | :--- |
-| **Emma** (Heroine) looks overwhelmed at a desk. Thousands of data screens reflect in her eyes. The room is cold blue. Suddenly, a **Golden Orb** pulses, weaving teal threads between a physical book and a tablet. | <video src="https://ministudio-public.s3.amazonaws.com/contextbytes_brand_story.mp4" controls width="480"></video> |
-
-> [!TIP]
-> **View the Code**: [contextbytes_brand_story.py](examples/contextbytes_brand_story.py)
-
----
-
-### 🧬 The "Last Algorithm" Narrative
-*Theme: Sci-Fi Mystery. Style: Cinematic Cyberpunk Night.*
-
-| 📜 The Script | 🎬 The Production (S3 Hosted) |
-| :--- | :--- |
-| **Sarah** transitions from scholarly focus to visceral fear as her AI hologram (**Aria**) begins to glitch. Dramatic lighting shifts from Lab-Blue to Alarm-Red. | <video src="https://ministudio-public.s3.amazonaws.com/the_last_algorithm.mp4" controls width="480"></video> |
+### **👉 [Read the Full Article: Programmable Cinematography](https://www.hersi.dev/blog/ministudio)**
 
 ---
 
@@ -49,9 +32,20 @@ pip install -e .
 ```
 
 ### 2. Configure Credentials
-MiniStudio supports **Vertex AI (Veo 3.1)** and **Google TTS**. Use Doppler for secure secret management:
+MiniStudio supports **Vertex AI (Veo 3.1)** and **Google TTS**. 
+
+#### Using Doppler (Recommended)
+[Doppler](https://www.doppler.com/) is a multi-platform secret manager. If you use it, you can run:
 ```bash
 doppler run -- python examples/contextbytes_brand_story.py
+```
+
+#### Using .env or Environment Variables
+If you don't use Doppler, simply create a `.env` file or export your variables directly:
+```bash
+export GOOGLE_API_KEY="your-key-here"
+# or
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/key.json"
 ```
 
 ### 3. Your First Shot

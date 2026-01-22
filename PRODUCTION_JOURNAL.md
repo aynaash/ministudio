@@ -1,56 +1,71 @@
-# Production Journal: Code-as-Video 🎬
+# 📔 Production Journal: The Path to Ghibli 2.0
 
-This journal documents the evolution of MiniStudio's "Stateful Filmmaking" engine. It maps the Python scripts (The Code) to their visual results (The Video) and candidly discusses the current technical challenges on the path to high-fidelity AI cinematography.
+> **MiniStudio Dev Log**  
+> *Mapping Programmable Cinematography to Visual Reality*
 
 ---
 
-## 📽️ Demo 1: The ContextBytes Brand Story
-**Goal**: Create a 1-minute emotional journey with consistent 'Ghibli Heroine' (Emma) and 'Intellectual' (David) characters.
+## 🎭 Case Study 1: ContextBytes Brand Story
+> **Vision**: High-End Studio Ghibli x Shinkai Awe  
+> **Script**: `examples/contextbytes_brand_story.py`
 
-| The Python Script | The Complete Production |
-| :--- | :--- |
-| <details><summary>View Script</summary>```python
-# EMMA Identity Grounding
-EMMA = Character(
-    identity={"hair": "chestnut brown bob", "eyes": "amber"}
-)
-# Scene 4: The Bloom
+### 🎞️ The Production Specs
+- **Characters**: Emma (Ghibli Heroine), David (Intellectual), The Orb.
+- **Narrative**: A 48s journey from data-overload to cognitive mastery.
+- **Aesthetic**: Deep teals (#008080) transitioning to Master Gold (#D4AF37).
+
+### 📝 The Script (Logic)
+```python
+# Scene: The Bloom
 ShotConfig(
     environment=GHIBLI_ATELIER,
-    action="Glowing vines of data grow around the desk."
+    action="Glowing vines of bioluminescent data grow like vines around the desk."
 )
-```</details> | <video src="contextbytes_production/contextbytes_brand_story.mp4" controls width="400"></video><br>*(6 Shots • 48s • 4K Shinkai Style)* |
+```
 
-### ⚠️ Challenges Noted:
-- **Visual Drift**: Despite identity grounding, Emma's blue sweater occasionally changes shade between Shot 1 and Shot 6.
-- **Environment Flickering**: The mahogany bookshelves in the `GHIBLI_ATELIER` shifted slightly in layout between the Medium Shot and Wide Shot.
+### 🎬 The Result
+👉 **[Watch the Full Production (4K Master)](https://www.hersi.dev/blog/ministudio)**
+
+### 🔍 Technical Debrief
+- **Character Consistency**: **SUCCESS**. Identity Grounding 2.0 kept Emma's facial features stable across 6 shots.
+- **Visual Drift**: **CHALLENGE**. Minor color shade shifts in Emma's sweater (Blue → Dark Blue) during lighting transitions.
+- **Environment Sync**: **CHALLENGE**. High-frequency details in backgrounds (bookshelves) shimmered slightly in wide shots.
 
 ---
 
-## 🧬 Demo 2: The Last Algorithm (Complex Story)
-**Goal**: Multi-character interaction across a scene change (Night Lab → Dawn Lab).
+## 🧬 Case Study 2: The Last Algorithm
+> **Vision**: Sci-Fi Narrative Tracking  
+> **Script**: `examples/complex_story_demo.py`
 
-| The Python Script | The Complete Production |
-| :--- | :--- |
-| <details><summary>View Script</summary>```python
+### 🎞️ The Production Specs
+- **Characters**: Sarah (Researcher), Aria (AI Hologram).
+- **Narrative**: High-stakes lab breakout under glitching conditions.
+- **Aesthetic**: Cinematic Night Lab transitioning to Crimson Alarm.
+
+### 📝 The Script (Logic)
+```python
 # Sarah: focused → shocked → fearful
 SARAH.current_state={"expression": "fearful"}
-# ARIA (AI Hologram)
-ARIA = Character(identity={"form": "liquid light hologram"})
-```</details> | <video src="the_last_algorithm/the_last_algorithm.mp4" controls width="400"></video><br>*(8 Shots • 64s • Cinematic Night/Dawn Lab)* |
+```
 
-### ⚠️ Challenges Noted:
-- **Temporal Stability**: Sarah's movements during her emotional transition were slightly "jittery" between keys.
-- **Audio Sync**: In Shot 3, the Google TTS audio finished 0.5s before the video ended, requiring a manual fix in `utils.py`.
+### 🎬 The Result
+👉 **[Watch the Full Narrative on hersi.dev](https://www.hersi.dev/blog/ministudio)**
+
+### 🔍 Technical Debrief
+- **Temporal Stability**: **CHALLENGE**. Sarah's movement during the 'fearful' transition had minor jitter between keyframes.
+- **Audio-Video Alignment**: **CHALLENGE**. Google TTS Studio-O voice finished 0.5s before the cinematic fade-out.
 
 ---
 
-## 🛠️ The Path Forward: AI Filmmaking 2.0
+## 🛠️ Roadmap: AI Filmmaking 2.0
 
-We have identified that **frame-level statefulness** is the next frontier. We are currently analyzing course material to implement:
-1.  **Consistent Background Masks**: Forcing the AI to "paint" characters on top of a locked, unchanging environment frame.
-2.  **Audio-Driven Animation**: Using the TTS waveform to drive character mouth movement and facial intensity.
-3.  **Universal Seeds**: Implementing deterministic noise across all shots in a scene to eliminate color-grading drift.
+To move beyond the current "AI Ceiling," we are implementing the following in our next sprint:
 
-### 🌟 Handover Note
-The mantle now passes to the developer. These challenges are not bugs, but the current **technological ceiling** of generative video. By following this journal, we can systematically break through them using advanced cinematography techniques.
+1.  **Semantic Masking**: Lock the background geometry while animating only the character layers.
+2.  **Audio-Driven Intensity**: Mapping the TTS waveform frequency to the diffusion model's motion intensity.
+3.  **Global Seed Locking**: Using a deterministic random seed across an entire scene for zero color drift.
+
+---
+
+**Handed over to the Lead Director (Hersi)**  
+*Ready for the 2.0 evolution.*
