@@ -133,40 +133,51 @@ class VertexAIProvider(BaseVideoProvider):
 
             # 2. Reference Images (Style/Character Grounding)
             # Veo 3.1 supports up to 3 reference images
+            # NOTE: image and reference_images are mutually exclusive
             reference_images = []
-            anchors_to_check = []
 
-            # Prioritize character samples
-            if request.character_samples:
-                for char_name, samples in request.character_samples.items():
-                    anchors_to_check.extend(samples)
+            # Only use reference images if we don't have a first-frame anchor
+            if not image_anchor:
+                anchors_to_check = []
 
-            # Then background samples
-            if request.background_samples:
-                anchors_to_check.extend(request.background_samples)
+                # Prioritize character samples
+                if request.character_samples:
+                    for char_name, samples in request.character_samples.items():
+                        anchors_to_check.extend(samples)
 
-            # Take the first 3 unique valid paths
-            unique_anchors = list(dict.fromkeys(anchors_to_check))
-            for anchor_path in unique_anchors[:3]:
-                if os.path.exists(anchor_path):
-                    try:
-                        mime_type, _ = mimetypes.guess_type(anchor_path)
-                        with open(anchor_path, 'rb') as f:
-                            ref_image = types.Image(
-                                image_bytes=f.read(),
-                                mime_type=mime_type or 'image/png'
-                            )
-                            reference_images.append(
-                                types.VideoGenerationReferenceImage(
-                                    image=ref_image,
-                                    reference_type="asset"
+                # Then background samples
+                if request.background_samples:
+                    anchors_to_check.extend(request.background_samples)
+
+                # Take the first 3 unique valid paths
+                unique_anchors = list(dict.fromkeys(anchors_to_check))
+                for anchor_path in unique_anchors[:3]:
+                    if os.path.exists(anchor_path):
+                        try:
+                            mime_type, _ = mimetypes.guess_type(anchor_path)
+                            with open(anchor_path, 'rb') as f:
+                                ref_image = types.Image(
+                                    image_bytes=f.read(),
+                                    mime_type=mime_type or 'image/png'
                                 )
-                            )
-                        logger.info(
-                            f"Adding reference image: {anchor_path} (MIME: {mime_type})")
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to load reference image {anchor_path}: {e}")
+                                reference_images.append(
+                                    types.VideoGenerationReferenceImage(
+                                        image=ref_image,
+                                        reference_type="asset"
+                                    )
+                                )
+                            logger.info(
+                                f"Adding reference image: {anchor_path} (MIME: {mime_type})")
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to load reference image {anchor_path}: {e}")
+
+                if reference_images:
+                    logger.info(
+                        f"Using reference images mode ({len(reference_images)} images)")
+            else:
+                logger.info(
+                    "Using first-frame continuity mode (skipping reference images)")
 
             # 3. Video-to-Video (Continuity)
             # Note: Veo 3.1 extension only supports videos from previous generations

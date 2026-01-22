@@ -24,7 +24,22 @@ wheels/
 # Ministudio Output
 ministudio_output/
 vertex_ai_output/
+contextbytes_production/
 *.mp4
+
+# Audio and Media Files
+ministudio_audio/
+*.mp3
+*.wav
+*.m4a
+
+# Images and Frames
+assets/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
 
 # Environment & Secrets
 .env

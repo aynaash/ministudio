@@ -171,16 +171,16 @@ class TestYourProvider:
 
 ```
 docs/
-├── index.md           # Main documentation
-├── installation.md    # Installation guide
-├── quickstart.md      # Getting started
-├── api.md            # API reference
-├── providers.md      # Provider documentation
-├── styles.md         # Styles and templates
-├── examples.md       # Usage examples
-├── contributing.md   # This file
-├── roadmap.md        # Future plans
-└── troubleshooting.md # Common issues
+ index.md           # Main documentation
+ installation.md    # Installation guide
+ quickstart.md      # Getting started
+ api.md            # API reference
+ providers.md      # Provider documentation
+ styles.md         # Styles and templates
+ examples.md       # Usage examples
+ contributing.md   # This file
+ roadmap.md        # Future plans
+ troubleshooting.md # Common issues
 ```
 
 ### Writing Guidelines
@@ -330,4 +330,4 @@ Contributors are recognized in:
 
 By contributing to Ministudio, you agree that your contributions will be licensed under the MIT License.
 
-Thank you for contributing to Ministudio! 🚀
+Thank you for contributing to Ministudio! 

@@ -115,6 +115,10 @@ class TestVertexAIFix(unittest.TestCase):
         self.assertEqual(kwargs.get('image').image_bytes, b"fake image data")
         self.assertEqual(kwargs.get('image').mime_type, "image/png")
 
+        # When image is set, reference_images should be None or empty
+        config = kwargs.get('config')
+        self.assertIsNone(config.reference_images)
+
 
 if __name__ == "__main__":
     unittest.main()

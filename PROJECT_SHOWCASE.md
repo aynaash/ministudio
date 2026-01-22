@@ -1,12 +1,12 @@
-# MiniStudio Project Showcase 🎬
+# MiniStudio Project Showcase 
 
-Welcome to the future of **Stateful Video Generation**. MiniStudio allows developers to treat video production like code—structured, repeatable, and identity-grounded.
+Welcome to the future of **Stateful Video Generation**. MiniStudio allows developers to treat video production like codestructured, repeatable, and identity-grounded.
 
 ---
 
-## 📽️ The Productions
+##  The Productions
 
-### 🌟 1. ContextBytes Brand Story (Ghibli 2.0)
+###  1. ContextBytes Brand Story (Ghibli 2.0)
 **Script Path**: `examples/contextbytes_brand_story.py`  
 **Vision**: A cinematic 1-minute journey from data chaos to cloud wisdom using Studio Ghibli aesthetics.
 
@@ -18,7 +18,7 @@ Welcome to the future of **Stateful Video Generation**. MiniStudio allows develo
 
 ---
 
-## ⚠️ Challenges & Technical Ceiling
+##  Challenges & Technical Ceiling
 
 Generative video is evolving rapidly. Here are the current challenges we've logged and our roadmap to solve them:
 
@@ -36,7 +36,7 @@ Generative video is evolving rapidly. Here are the current challenges we've logg
 
 ---
 
-## 🛠️ How to View
+##  How to View
 To reproduce these results, ensure your credentials are set. We use **Doppler** (a secret manager) for security, but you can also use a standard `.env` file or environment variables.
 
 ### Running with Doppler:

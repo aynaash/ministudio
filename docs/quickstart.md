@@ -27,7 +27,7 @@ ministudio --provider mock --concept "Hello World" --action "orb waving"
 
 You should see:
 ```
-✓ Video generated successfully!
+ Video generated successfully!
   Provider: mock
   Time: 1.0s
   Saved to: ./ministudio_output/Hello_World_123456789.mp4
@@ -203,4 +203,4 @@ Now that you have Ministudio working:
 4. Integrate into your applications
 5. Contribute back to the community
 
-Happy video generating! 🎬
+Happy video generating! 

@@ -302,10 +302,10 @@ class StyleConfig:
 
 | Provider | Status | Setup |
 |----------|--------|-------|
-| Mock | ✅ Ready | No setup required |
-| Google Vertex AI | ✅ Ready | `GCP_PROJECT_ID` env var |
-| OpenAI Sora | ✅ Ready | `OPENAI_API_KEY` env var |
-| Local (SVD) | ✅ Ready | Model path configuration |
+| Mock |  Ready | No setup required |
+| Google Vertex AI |  Ready | `GCP_PROJECT_ID` env var |
+| OpenAI Sora |  Ready | `OPENAI_API_KEY` env var |
+| Local (SVD) |  Ready | Model path configuration |
 
 ### Adding New Providers
 
@@ -462,12 +462,12 @@ pip install -e .[all]
 
 ### Phase 1: Developer Adoption (Current)
 
-- ✅ MVP with core providers
-- ✅ CLI and Python API
-- ✅ Self-hostable API server
-- ✅ Docker containerization
-- 🔄 MCP server integration
-- 🔄 Cinematic filmmaking templates
+-  MVP with core providers
+-  CLI and Python API
+-  Self-hostable API server
+-  Docker containerization
+-  MCP server integration
+-  Cinematic filmmaking templates
 
 ### Phase 2: Production Ready
 
@@ -529,6 +529,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ for the AI video generation community**
+**Built with  for the AI video generation community**
 
 *Consistent AI video generation, made simple.*

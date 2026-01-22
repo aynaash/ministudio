@@ -1,4 +1,4 @@
-# MiniStudio: The Cinematic AI Engine 🎬✨
+# MiniStudio: The Cinematic AI Engine
 
 **Programmable, Stateful, and Model-Agnostic Orchestration for High-Fidelity Video Production.**
 
@@ -6,15 +6,15 @@ MiniStudio transforms the chaotic world of generative AI into a structured filmm
 
 ---
 
-## 🎬 See it in Action
+## See it in Action
 
 The "Why" behind this project and the high-fidelity results (Ghibli 2.0, The Last Algorithm) are documented in detail on my personal site:
 
-### **👉 [Read the Full Article: Programmable Cinematography](https://www.hersi.dev/blog/ministudio)**
+### **[Read the Full Article: Programmable Cinematography](https://www.hersi.dev/blog/ministudio)**
 
 ---
 
-## 🛠️ The Architecture: How it Works
+## The Architecture: How it Works
 
 MiniStudio uses a three-layer stack to ensure your characters don't "drift" between shots.
 
@@ -24,7 +24,7 @@ MiniStudio uses a three-layer stack to ensure your characters don't "drift" betw
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Installation
 ```bash
@@ -68,7 +68,7 @@ await orchestrator.generate_shot(shot)
 
 ---
 
-## ⚠️ Challenges & Roadmap (AI Filmmaking 2.0)
+## Challenges & Roadmap (AI Filmmaking 2.0)
 
 We are currently pushing the boundaries of what is possible. Current research areas included in our **[Production Journal](PRODUCTION_JOURNAL.md)**:
 - **Audio-Sync Lag**: Refining the waveform orchestrator to eliminate the 0.5s voice/video drift.
@@ -77,7 +77,7 @@ We are currently pushing the boundaries of what is possible. Current research ar
 
 ---
 
-## 🤝 Contributing & Community
+## Contributing & Community
 MiniStudio is built by the community for the community. See **[ROADMAP.md](ROADMAP.md)** for our upcoming features.
 
-**Made with ❤️ for the future of cinema.**
+**Made with love for the future of cinema.**

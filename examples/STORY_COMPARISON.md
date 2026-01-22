@@ -2,14 +2,14 @@
 
 ## Simple Story: Quantum Mechanics TikTok
 
-**Complexity Level**: ⭐⭐☆☆☆
+**Complexity Level**: 
 
 ### Features
-- ✓ 2 characters (Grandfather, Granddaughter)
-- ✓ 1 static environment (Cozy Study)
-- ✓ 7 shots, all in same location
-- ✓ Character voices
-- ✓ Basic continuity
+-  2 characters (Grandfather, Granddaughter)
+-  1 static environment (Cozy Study)
+-  7 shots, all in same location
+-  Character voices
+-  Basic continuity
 
 ### Use Case
 Educational content, tutorials, simple narratives
@@ -27,16 +27,16 @@ scene = SceneConfig(
 
 ## Complex Story: The Last Algorithm
 
-**Complexity Level**: ⭐⭐⭐⭐⭐
+**Complexity Level**: 
 
 ### Features
-- ✓ 2 characters (Dr. Sarah, ARIA hologram)
-- ✓ **Emotional evolution** (focused → shocked → fearful → accepting)
-- ✓ **2 dynamic environments** (Night Lab → Dawn Lab)
-- ✓ **Scene transitions** with character preservation
-- ✓ **Multi-character interactions** with distinct personalities
-- ✓ **Cinematic lighting changes** (cold blue → warm golden)
-- ✓ Advanced continuity across environment changes
+-  2 characters (Dr. Sarah, ARIA hologram)
+-  **Emotional evolution** (focused  shocked  fearful  accepting)
+-  **2 dynamic environments** (Night Lab  Dawn Lab)
+-  **Scene transitions** with character preservation
+-  **Multi-character interactions** with distinct personalities
+-  **Cinematic lighting changes** (cold blue  warm golden)
+-  Advanced continuity across environment changes
 
 ### Use Case
 Dramatic stories, sci-fi narratives, complex character arcs
@@ -63,13 +63,13 @@ scene2 = SceneConfig(
 ### 1. Character Emotional Evolution
 ```
 Simple: Grandfather stays "enthusiastic" throughout
-Complex: Sarah evolves focused → shocked → fearful → accepting
+Complex: Sarah evolves focused  shocked  fearful  accepting
 ```
 
 ### 2. Dynamic Backgrounds
 ```
 Simple: Cozy Study (static)
-Complex: Night Lab → Dawn Lab (dynamic lighting transition)
+Complex: Night Lab  Dawn Lab (dynamic lighting transition)
 ```
 
 ### 3. Continuity Challenge

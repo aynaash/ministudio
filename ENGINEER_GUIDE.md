@@ -2,7 +2,7 @@
 
 Welcome to the MiniStudio development repository. This guide explains how to use the library to create high-consistency AI videos and how to extend it for your own use cases.
 
-## 🛠️ Installation & Setup
+##  Installation & Setup
 
 ```bash
 # Clone the repository
@@ -19,7 +19,7 @@ export VERTEX_AI_API_KEY="your-api-key"
 export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 ```
 
-## 🏗️ Core Architecture: The "Stateful" Workflow
+##  Core Architecture: The "Stateful" Workflow
 
 MiniStudio is built on the principle that **Video is Code**. Unlike simple prompt-based generators, MiniStudio tracks visual state across multiple API calls.
 
@@ -68,14 +68,14 @@ scene = SceneConfig(
 result = await orchestrator.generate_production(scene)
 ```
 
-## 🧠 Advanced Grounding Mechanism
+##  Advanced Grounding Mechanism
 
 MiniStudio solves the "drift" problem in 3 ways:
 1.  **Prompt Anchoring**: The `identity` fields are injected at the top of every AI prompt as "CRITICAL" instructions.
 2.  **Frame Continuity**: The orchestrator extracts the last 3 frames of `Shot N` and passes them as the "starting_frames" for `Shot N+1`.
 3.  **Sequential Locking**: Videos are generated and merged in strict sequential order based on the `shot_idx`.
 
-## 🛠️ Extending MiniStudio
+##  Extending MiniStudio
 
 ### Adding a New Video Provider
 1.  Create `ministudio/providers/your_provider.py`.
@@ -86,7 +86,7 @@ MiniStudio solves the "drift" problem in 3 ways:
 ### Custom Prompt Compilation
 If you want to change how the objects are turned into text, modify `ministudio/compiler.py`.
 
-## 📜 Available Examples
+##  Available Examples
 - `examples/ghibli_studio_demo.py`: Studio Ghibli artistic style.
 - `examples/quantum_tiktok_demo.py`: Educational TikTok content (9:16).
 - `examples/consistent_story_demo.py`: Demonstrates maximum character persistence.
