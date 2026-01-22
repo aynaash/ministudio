@@ -105,7 +105,7 @@ async def create_quantum_tiktok():
     Create a 1-minute TikTok explaining quantum mechanics.
     The state machine ensures characters and background stay consistent!
     """
-    print("🎬 Creating Quantum Mechanics TikTok...")
+    print("Creating Quantum Mechanics TikTok...")
 
     # Initialize provider and orchestrator
     provider = VertexAIProvider()
@@ -208,13 +208,13 @@ async def create_quantum_tiktok():
     )
 
     if result["success"]:
-        print("\n✅ TIKTOK CREATED!")
-        print(f"📍 Video: {result['local_path']}")
-        print(f"⏱️  Duration: ~56 seconds (7 shots × 8 seconds)")
-        print(f"🎭 Characters: Grandfather & Granddaughter (consistent across all shots)")
-        print(f"🏠 Environment: Cozy Study (maintained throughout)")
+        print("\nTIKTOK CREATED!")
+        print(f"Video: {result['local_path']}")
+        print(f" Duration: ~56 seconds (7 shots × 8 seconds)")
+        print(f"Characters: Grandfather & Granddaughter (consistent across all shots)")
+        print(f"Environment: Cozy Study (maintained throughout)")
     else:
-        print("\n❌ PRODUCTION FAILED")
+        print("\nPRODUCTION FAILED")
         for i, res in enumerate(result["results"]):
             if not res.success:
                 print(f"  Shot {i+1} failed: {res.error}")

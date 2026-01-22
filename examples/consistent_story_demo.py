@@ -187,8 +187,8 @@ async def generate_consistent_production(sample_only: bool = False):
     )
 
     if production_result["success"]:
-        print("\n✅ CONSISTENT PRODUCTION COMPLETE!")
-        print(f"📍 Final Video: {production_result['local_path']}")
+        print("\nCONSISTENT PRODUCTION COMPLETE!")
+        print(f"Final Video: {production_result['local_path']}")
     else:
         print("\n❌ PRODUCTION FAILED")
         for i, res in enumerate(production_result["results"]):

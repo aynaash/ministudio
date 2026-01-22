@@ -13,7 +13,7 @@ from ministudio import Ministudio
 async def main():
     """Generate a basic video using Ministudio"""
 
-    print("🚀 Ministudio Basic Usage Example")
+    print(" Ministudio Basic Usage Example")
     print("=" * 40)
 
     # 1. Create a provider
@@ -51,7 +51,7 @@ async def main():
     elif result.error:
         print(f"   Error: {result.error}")
 
-    print("\n✅ Example completed!")
+    print("\nExample completed!")
 
 
 if __name__ == "__main__":

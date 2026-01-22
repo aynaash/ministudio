@@ -62,7 +62,7 @@ async def produce_emma_spotlight_vertex():
         ]
     }
 
-    print("🚀 PRODUCING (VERTEX AI): Emma Spotlight (Narration-Driven)")
+    print("PRODUCING (VERTEX AI): Emma Spotlight (Narration-Driven)")
     await studio.generate_film(spec)
 
 if __name__ == "__main__":

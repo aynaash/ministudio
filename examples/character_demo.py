@@ -43,7 +43,8 @@ async def main():
             "continuity": "Maintain character appearance across all frames"
         }
     )
-    print(f"   Character defined: {custom_style.characters['orb']['appearance']}")
+    print(
+        f"   Character defined: {custom_style.characters['orb']['appearance']}")
 
     # 2. Create provider and studio
     print("2. Setting up Ministudio...")
@@ -87,7 +88,7 @@ async def main():
         if result.success:
             print(f"     ✓ Success ({result.generation_time:.1f}s)")
             if result.video_path:
-                print(f"     📁 Saved: {result.video_path.name}")
+                print(f"Saved: {result.video_path.name}")
         else:
             print(f"     ✗ Failed: {result.error}")
 
@@ -106,8 +107,8 @@ async def main():
         print(f"   - Motion: {orb_desc['motion']}")
         print("   - Size: {orb_desc['size']}")
 
-    print("\n✅ Character consistency demo completed!")
-    print("\n💡 Key Innovation: Define once, consistent everywhere")
+    print("\nCharacter consistency demo completed!")
+    print("\nKey Innovation: Define once, consistent everywhere")
     print("   Traditional AI video: Characters change between generations")
     print("   Ministudio: Same character, every time")
 

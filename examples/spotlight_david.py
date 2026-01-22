@@ -61,7 +61,7 @@ async def produce_david_spotlight_vertex():
         ]
     }
 
-    print("🚀 PRODUCING (VERTEX AI): David Spotlight (Narration-Driven)")
+    print(" PRODUCING (VERTEX AI): David Spotlight (Narration-Driven)")
     await studio.generate_film(spec)
 
 if __name__ == "__main__":

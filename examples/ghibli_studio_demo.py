@@ -95,7 +95,7 @@ async def generate_brand_story(sample_only: bool = False, upload: bool = False):
     )
 
     if production_result["success"]:
-        print("\n✅ PRODUCTION COMPLETE!")
+        print("\nPRODUCTION COMPLETE!")
         print(f"📍 Local Path: {production_result['local_path']}")
         if "s3_url" in production_result:
             print(f"🔗 S3 URL: {production_result['s3_url']}")

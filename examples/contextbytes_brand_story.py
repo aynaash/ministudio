@@ -238,9 +238,9 @@ async def create_brand_video():
 
     if result["success"]:
         print(
-            f"✨ SUCCESS! Dynamic Flagship video saved to: {result['local_path']}")
+            f"SUCCESS! Dynamic Flagship video saved to: {result['local_path']}")
     else:
-        print(f"❌ FAILED: {result.get('error')}")
+        print(f" FAILED: {result.get('error')}")
 
 if __name__ == "__main__":
     asyncio.run(create_brand_video())

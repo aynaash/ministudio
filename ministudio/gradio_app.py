@@ -52,7 +52,7 @@ async def generate_video_ui(provider_name: str, concept: str, action: str, durat
 # Create Gradio interface
 with gr.Blocks(title="Ministudio - AI Video Generator") as demo:
     gr.Markdown("""
-    # 🎬 Ministudio - AI Video Generator
+    #Ministudio - AI Video Generator
     
     ### *The Kubernetes for AI Video*
     
@@ -118,7 +118,7 @@ with gr.Blocks(title="Ministudio - AI Video Generator") as demo:
     )
 
     gr.Markdown("""
-    ### 🧠 Why Ministudio?
+    ### Why Ministudio?
     - **Stateful**: Maintains character & environment consistency.
     - **Model-Agnostic**: Switch between Google Veo, Sora, and others instantly.
     - **Programmatic**: Code-as-Video configuration system.
