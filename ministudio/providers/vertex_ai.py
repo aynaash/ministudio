@@ -5,6 +5,8 @@ import os
 import re
 import json
 import time
+import io
+import mimetypes
 import asyncio
 import logging
 from typing import Optional, Dict, Any
@@ -68,6 +70,10 @@ class VertexAIProvider(BaseVideoProvider):
     def name(self) -> str:
         return "google-vertex-ai"
 
+    @property
+    def max_duration(self) -> int:
+        return 8  # Veo model limit
+
     async def generate_video(self, request: VideoGenerationRequest) -> VideoGenerationResult:
         start_time = time.time()
 
@@ -106,16 +112,91 @@ class VertexAIProvider(BaseVideoProvider):
                     f"Requested duration {duration}s is too long for preview model. Clamping to 8s.")
                 duration = 8
 
-            source = types.GenerateVideosSource(prompt=request.prompt)
+            # Prepare Grounding Anchors
+            image_anchor = None
+
+            # 1. Primary Image (First Frame Grounding)
+            if request.starting_frames:
+                try:
+                    anchor_path = request.starting_frames[0]
+                    if os.path.exists(anchor_path):
+                        mime_type, _ = mimetypes.guess_type(anchor_path)
+                        with open(anchor_path, 'rb') as f:
+                            image_anchor = types.Image(
+                                image_bytes=f.read(),
+                                mime_type=mime_type or 'image/png'
+                            )
+                        logger.info(
+                            f"Using first frame anchor: {anchor_path} (MIME: {mime_type})")
+                except Exception as e:
+                    logger.warning(f"Failed to load first frame anchor: {e}")
+
+            # 2. Reference Images (Style/Character Grounding)
+            # Veo 3.1 supports up to 3 reference images
+            reference_images = []
+            anchors_to_check = []
+
+            # Prioritize character samples
+            if request.character_samples:
+                for char_name, samples in request.character_samples.items():
+                    anchors_to_check.extend(samples)
+
+            # Then background samples
+            if request.background_samples:
+                anchors_to_check.extend(request.background_samples)
+
+            # Take the first 3 unique valid paths
+            unique_anchors = list(dict.fromkeys(anchors_to_check))
+            for anchor_path in unique_anchors[:3]:
+                if os.path.exists(anchor_path):
+                    try:
+                        mime_type, _ = mimetypes.guess_type(anchor_path)
+                        with open(anchor_path, 'rb') as f:
+                            ref_image = types.Image(
+                                image_bytes=f.read(),
+                                mime_type=mime_type or 'image/png'
+                            )
+                            reference_images.append(
+                                types.VideoGenerationReferenceImage(
+                                    image=ref_image,
+                                    reference_type="asset"
+                                )
+                            )
+                        logger.info(
+                            f"Adding reference image: {anchor_path} (MIME: {mime_type})")
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to load reference image {anchor_path}: {e}")
+
+            # 3. Video-to-Video (Continuity)
+            # Note: Veo 3.1 extension only supports videos from previous generations
+            # but we'll try to pass bytes if it's a local path, though it might fail.
+            if request.starting_frames and len(request.starting_frames) > 0:
+                # If it's a video file, it's captured in starting_frames
+                # But Veo 3.1 primary 'image' handles the first frame.
+                # 'video' is primarily for extension.
+                pass
+
+            # Model constraints: duration must be 8s for reference images, 1080p, or 4k
+            if reference_images or request.aspect_ratio == "9:16":
+                if duration != 8:
+                    logger.info(
+                        f"Setting duration to 8s as required for reference images/portrait mode.")
+                    duration = 8
+
             config = types.GenerateVideosConfig(
                 aspect_ratio=request.aspect_ratio,
-                duration_seconds=duration
+                duration_seconds=duration,
+                reference_images=reference_images if reference_images else None
             )
 
             # Use preview model (matches working script)
+            # Flattened call: pass prompt, image, video as direct kwargs
             operation = self._client.models.generate_videos(
                 model="veo-3.1-generate-preview",
-                source=source,
+                prompt=request.prompt,
+                image=image_anchor,
+                video=None,  # Video parameter is restricted to Veo-generated videos
                 config=config
             )
 
