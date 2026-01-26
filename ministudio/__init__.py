@@ -189,7 +189,86 @@ from .production_orchestrator import (
     quick_produce
 )
 
-__version__ = "0.2.0"
+# Video Text Overlay System
+from .text_overlay import (
+    TextOverlay,
+    TextTrack,
+    TextPosition,
+    TextAnimation,
+    TextOverlayStyle,
+    TEXT_STYLES,
+    get_text_style,
+    Color as TextColor,
+    COLORS,
+    get_contrasting_color,
+    VideoColorAnalyzer,
+    SubtitleParser,
+    SubtitleEntry,
+    LowerThird,
+    VideoTextRenderer,
+    add_subtitles_to_video,
+    add_text_to_video,
+    create_subtitle_track
+)
+
+# Video Processing Tools
+from .video_tools import (
+    VideoReader,
+    VideoWriter,
+    VideoWriterConfig,
+    VideoOperations,
+    VideoInfo,
+    BatchProcessor,
+    BatchJob,
+    get_video_info,
+    trim_video,
+    concatenate_videos,
+    extract_audio,
+    add_audio_to_video
+)
+
+# Image Processing Tools
+from .image_tools import (
+    ImageInfo,
+    ImageOperations,
+    TextRenderConfig,
+    TextRenderer,
+    ImageCompositor,
+    get_image_info,
+    load_image,
+    save_image,
+    resize_image,
+    create_text_image
+)
+
+# Transcription System
+from .transcription import (
+    Transcription,
+    Transcriber,
+    TranscriptionConfig,
+    TranscriptionModel,
+    Segment as TranscriptionSegment,
+    Word,
+    SubtitleGenerator,
+    SpeakerDiarizer,
+    transcribe,
+    transcribe_to_srt,
+    transcribe_to_vtt,
+    is_transcription_available
+)
+
+# Video Text Integration Pipeline
+from .video_text import (
+    VideoTextPipeline,
+    TextPipelineConfig,
+    TestVideoManager,
+    add_subtitles,
+    auto_subtitle,
+    add_title,
+    add_watermark
+)
+
+__version__ = "0.2.1"
 __author__ = "Ministudio Team"
 __email__ = "team@ministudio.ai"
 
@@ -354,4 +433,73 @@ __all__ = [
     "ProductionProgress",
     "produce_from_plan",
     "quick_produce",
+    
+    # Text Overlay System
+    "TextOverlay",
+    "TextTrack",
+    "TextPosition",
+    "TextAnimation",
+    "TextOverlayStyle",
+    "TEXT_STYLES",
+    "get_text_style",
+    "TextColor",
+    "COLORS",
+    "get_contrasting_color",
+    "VideoColorAnalyzer",
+    "SubtitleParser",
+    "SubtitleEntry",
+    "LowerThird",
+    "VideoTextRenderer",
+    "add_subtitles_to_video",
+    "add_text_to_video",
+    "create_subtitle_track",
+    
+    # Video Tools
+    "VideoReader",
+    "VideoWriter",
+    "VideoWriterConfig",
+    "VideoOperations",
+    "VideoInfo",
+    "BatchProcessor",
+    "BatchJob",
+    "get_video_info",
+    "trim_video",
+    "concatenate_videos",
+    "extract_audio",
+    "add_audio_to_video",
+    
+    # Image Tools
+    "ImageInfo",
+    "ImageOperations",
+    "TextRenderConfig",
+    "TextRenderer",
+    "ImageCompositor",
+    "get_image_info",
+    "load_image",
+    "save_image",
+    "resize_image",
+    "create_text_image",
+    
+    # Transcription
+    "Transcription",
+    "Transcriber",
+    "TranscriptionConfig",
+    "TranscriptionModel",
+    "TranscriptionSegment",
+    "Word",
+    "SubtitleGenerator",
+    "SpeakerDiarizer",
+    "transcribe",
+    "transcribe_to_srt",
+    "transcribe_to_vtt",
+    "is_transcription_available",
+    
+    # Video Text Pipeline
+    "VideoTextPipeline",
+    "TextPipelineConfig",
+    "TestVideoManager",
+    "add_subtitles",
+    "auto_subtitle",
+    "add_title",
+    "add_watermark",
 ]
