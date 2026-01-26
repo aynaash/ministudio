@@ -83,7 +83,113 @@ from .audio_agent import (
     interactive_audio_session
 )
 
-__version__ = "0.1.0"
+# New Cinematic Pipeline Components
+from .registry import (
+    ProviderRegistry,
+    RegisteredProvider,
+    ProviderMetrics,
+    ProviderStatus,
+    get_registry,
+    set_registry
+)
+
+from .scene_graph import (
+    SceneGraph,
+    Entity,
+    EntityType,
+    EmotionalState,
+    CharacterState,
+    CameraState,
+    LightingState,
+    ConflictRelationship,
+    Transform
+)
+
+from .shot_plan import (
+    ShotPlan,
+    Shot,
+    Scene,
+    CameraSpec,
+    LightingSpec,
+    CharacterSpec,
+    EnvironmentSpec,
+    AudioSpec,
+    EffectsSpec,
+    CharacterDefinition,
+    Transition,
+    CameraMotion,
+    load_shot_plan,
+    create_shot_plan
+)
+
+from .cinematography import (
+    CinematographyProfile,
+    CompositionRule,
+    LightingStyle,
+    StyleEvolution,
+    CINEMATOGRAPHY_PROFILES,
+    get_profile as get_cinematography_profile,
+    create_profile as create_cinematography_profile
+)
+
+from .audio_system import (
+    AudioTimeline,
+    AudioTrack,
+    AudioClip,
+    AudioTrackType,
+    VoiceSettings,
+    VoiceStyle,
+    MusicCue,
+    MusicAction,
+    SFXEvent,
+    LipSyncData,
+    MixSettings,
+    AudioGenerator
+)
+
+from .prompt_compiler import (
+    StructuredPromptCompiler,
+    CompiledPrompt,
+    PromptPart,
+    PromptFormat,
+    PromptStyle,
+    compile_shot,
+    compile_plan,
+    quick_prompt
+)
+
+from .shot_splitter import (
+    ShotSplitter,
+    Segment,
+    SplitConfig,
+    SplitStrategy,
+    RetryHandler,
+    RetryStrategy,
+    split_shot,
+    split_plan
+)
+
+from .post_processor import (
+    PostProcessor,
+    ProcessedClip,
+    ColorGradeSettings,
+    TransitionSpec,
+    ProductionManifest,
+    COLOR_GRADE_PRESETS,
+    get_color_grade,
+    export_edl,
+    FFmpegCommandBuilder
+)
+
+from .production_orchestrator import (
+    ProductionOrchestrator,
+    ProductionConfig,
+    ProductionProgress,
+    produce_from_plan,
+    quick_produce
+)
+
+__version__ = "0.2.0"
 __author__ = "Ministudio Team"
 __email__ = "team@ministudio.ai"
 
@@ -152,4 +258,100 @@ __all__ = [
     "text_to_prompt",
     "audio_to_video",
     "interactive_audio_session",
+    
+    # Provider Registry
+    "ProviderRegistry",
+    "RegisteredProvider",
+    "ProviderMetrics",
+    "ProviderStatus",
+    "get_registry",
+    "set_registry",
+    
+    # Scene Graph
+    "SceneGraph",
+    "Entity",
+    "EntityType",
+    "EmotionalState",
+    "CharacterState",
+    "CameraState",
+    "LightingState",
+    "ConflictRelationship",
+    "Transform",
+    
+    # Shot Planning
+    "ShotPlan",
+    "Shot",
+    "Scene",
+    "CameraSpec",
+    "LightingSpec",
+    "CharacterSpec",
+    "EnvironmentSpec",
+    "AudioSpec",
+    "EffectsSpec",
+    "CharacterDefinition",
+    "Transition",
+    "CameraMotion",
+    "load_shot_plan",
+    "create_shot_plan",
+    
+    # Cinematography
+    "CinematographyProfile",
+    "CompositionRule",
+    "LightingStyle",
+    "StyleEvolution",
+    "CINEMATOGRAPHY_PROFILES",
+    "get_cinematography_profile",
+    "create_cinematography_profile",
+    
+    # Audio System
+    "AudioTimeline",
+    "AudioTrack",
+    "AudioClip",
+    "AudioTrackType",
+    "VoiceSettings",
+    "VoiceStyle",
+    "MusicCue",
+    "MusicAction",
+    "SFXEvent",
+    "LipSyncData",
+    "MixSettings",
+    "AudioGenerator",
+    
+    # Prompt Compilation
+    "StructuredPromptCompiler",
+    "CompiledPrompt",
+    "PromptPart",
+    "PromptFormat",
+    "PromptStyle",
+    "compile_shot",
+    "compile_plan",
+    "quick_prompt",
+    
+    # Shot Splitting
+    "ShotSplitter",
+    "Segment",
+    "SplitConfig",
+    "SplitStrategy",
+    "RetryHandler",
+    "RetryStrategy",
+    "split_shot",
+    "split_plan",
+    
+    # Post Processing
+    "PostProcessor",
+    "ProcessedClip",
+    "ColorGradeSettings",
+    "TransitionSpec",
+    "ProductionManifest",
+    "COLOR_GRADE_PRESETS",
+    "get_color_grade",
+    "export_edl",
+    "FFmpegCommandBuilder",
+    
+    # Production Orchestrator
+    "ProductionOrchestrator",
+    "ProductionConfig",
+    "ProductionProgress",
+    "produce_from_plan",
+    "quick_produce",
 ]
