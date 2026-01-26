@@ -56,8 +56,29 @@ from .providers import (
     MockVideoProvider,
     create_provider,
     list_providers,
-    PROVIDERS
+    create_veo,
+    create_huggingface,
+    PROVIDERS,
+    HAS_VEO,
+    HAS_HUGGINGFACE,
+    HAS_SORA
 )
+
+# Conditionally import Veo provider
+try:
+    from .providers import (
+        VeoProvider, VeoConfig, VeoModel, VeoGenerationResult
+    )
+except ImportError:
+    pass
+
+# Conditionally import HuggingFace provider  
+try:
+    from .providers import (
+        HuggingFaceProvider, HFVideoConfig, HFVideoModel, HFGenerationResult
+    )
+except ImportError:
+    pass
 
 # Simple Builder (Non-Technical Interface)
 from .simple_builder import (
@@ -268,7 +289,7 @@ from .video_text import (
     add_watermark
 )
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __author__ = "Ministudio Team"
 __email__ = "team@ministudio.ai"
 
@@ -292,7 +313,12 @@ __all__ = [
     "MockVideoProvider",
     "create_provider",
     "list_providers",
+    "create_veo",
+    "create_huggingface",
     "PROVIDERS",
+    "HAS_VEO",
+    "HAS_HUGGINGFACE",
+    "HAS_SORA",
 
     # Config & Data
     "VideoConfig",
