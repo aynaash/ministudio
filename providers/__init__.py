@@ -1,1 +1,0 @@
-# Ministudio providers package

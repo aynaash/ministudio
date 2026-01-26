@@ -48,6 +48,17 @@ from .config import (
 from .state import VideoStateMachine, WorldState
 from .orchestrator import VideoOrchestrator
 
+# Providers (unified system)
+from .providers import (
+    BaseVideoProvider,
+    VertexAIProvider,
+    LocalVideoProvider,
+    MockVideoProvider,
+    create_provider,
+    list_providers,
+    PROVIDERS
+)
+
 # Simple Builder (Non-Technical Interface)
 from .simple_builder import (
     SimpleBuilder,
@@ -88,6 +99,15 @@ __all__ = [
     "VideoGenerationRequest",
     "VideoGenerationResult",
     "VideoProvider",
+    
+    # Providers
+    "BaseVideoProvider",
+    "VertexAIProvider",
+    "LocalVideoProvider",
+    "MockVideoProvider",
+    "create_provider",
+    "list_providers",
+    "PROVIDERS",
 
     # Config & Data
     "VideoConfig",
@@ -111,5 +131,25 @@ __all__ = [
     "Vector3",
     "ShotType",
     "ShotConfig",
-    "SceneConfig"
+    "SceneConfig",
+    
+    # Simple Builder
+    "SimpleBuilder",
+    "SimpleVideoRequest",
+    "generate_video",
+    "generate_video_from_description",
+    "generate_from_template",
+    "interactive_setup",
+    "TEMPLATES",
+    
+    # Audio Agent
+    "AudioAgent",
+    "AudioTranscriber",
+    "PromptCompiler",
+    "VideoPrompt",
+    "TranscriptionProvider",
+    "audio_to_prompt",
+    "text_to_prompt",
+    "audio_to_video",
+    "interactive_audio_session",
 ]

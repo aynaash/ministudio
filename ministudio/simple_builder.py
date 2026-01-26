@@ -23,7 +23,7 @@ import asyncio
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
 from .config import ShotConfig, VideoConfig, ProviderConfig
-from .adapters import VertexAIAdapter, HuggingFaceAdapter, LocalModelAdapter
+from .providers import create_provider, list_providers, BaseVideoProvider
 from .interfaces import VideoGenerationRequest, VideoGenerationResult
 from .orchestrator import VideoOrchestrator
 
@@ -102,42 +102,37 @@ class SimpleBuilder:
         )
     
     @staticmethod
-    async def get_provider(provider_name: str = "auto"):
+    async def get_provider(provider_name: str = "auto") -> BaseVideoProvider:
         """
         Get provider based on user preference.
         
-        "auto" tries in order: Vertex AI → Hugging Face → Local
+        "auto" tries to detect best available provider.
         """
-        if provider_name == "vertex_ai":
-            return VertexAIAdapter.create()
-        elif provider_name == "huggingface":
-            return HuggingFaceAdapter.create()
-        elif provider_name == "local":
-            return LocalModelAdapter.create()
-        elif provider_name == "auto":
-            # Try providers in order of preference
-            providers_to_try = [
-                ("Vertex AI", lambda: VertexAIAdapter.create()),
-                ("Hugging Face", lambda: HuggingFaceAdapter.create()),
-                ("Local Model", lambda: LocalModelAdapter.create()),
-            ]
-            
-            for name, provider_fn in providers_to_try:
-                try:
-                    provider = provider_fn()
-                    print(f"✅ Using {name} for generation")
-                    return provider
-                except Exception as e:
-                    print(f"⚠️  {name} not available: {str(e)[:50]}")
-                    continue
-            
-            raise RuntimeError(
-                "No video provider available.\n"
-                "Please set up one: Vertex AI, Hugging Face, or Local Model.\n"
-                "See: docs/configuration_and_secrets.md"
-            )
+        if provider_name == "auto":
+            # Use unified provider factory with auto-detection
+            try:
+                provider = create_provider()
+                providers = list_providers()
+                # Find which one was selected
+                for name, info in providers.items():
+                    if info.get("configured"):
+                        print(f"✅ Using {name} for generation")
+                        break
+                return provider
+            except Exception as e:
+                raise RuntimeError(
+                    f"No video provider available: {e}\n"
+                    "Please set up one: Vertex AI, Local Model, etc.\n"
+                    "See: docs/configuration_and_secrets.md"
+                )
         else:
-            raise ValueError(f"Unknown provider: {provider_name}")
+            # Use specific provider
+            try:
+                provider = create_provider(provider_name)
+                print(f"✅ Using {provider_name} for generation")
+                return provider
+            except Exception as e:
+                raise ValueError(f"Provider {provider_name} not available: {e}")
 
 
 async def generate_video_from_description(

@@ -349,3 +349,63 @@ class VertexAIProvider(BaseVideoProvider):
     def estimate_cost(self, duration_seconds: int) -> float:
         # Vertex AI pricing estimate (subject to change)
         return duration_seconds * 0.05  # Example: $0.05 per second
+
+    # ==================== Factory Methods ====================
+    
+    @classmethod
+    def create(
+        cls,
+        project_id: Optional[str] = None,
+        location: str = "us-central1",
+        **kwargs
+    ) -> "VertexAIProvider":
+        """
+        Factory method to create Vertex AI provider with minimal configuration.
+        
+        Args:
+            project_id: GCP project ID (defaults to GCP_PROJECT_ID env var)
+            location: GCP region (default: us-central1)
+            **kwargs: Additional options
+        
+        Returns:
+            Configured VertexAIProvider instance
+        
+        Example:
+            provider = VertexAIProvider.create(project_id="my-project")
+            result = await provider.generate_video(request)
+        """
+        if not project_id:
+            project_id = os.getenv("GCP_PROJECT_ID") or os.getenv("VERTEX_AI_PROJECT_ID")
+        
+        return cls(
+            project_id=project_id,
+            location=location,
+            **kwargs
+        )
+    
+    @staticmethod
+    def get_setup_instructions() -> str:
+        """Return setup instructions for Vertex AI"""
+        return """
+=== Vertex AI Setup Instructions ===
+
+1. Create a GCP project:
+   https://console.cloud.google.com/projectcreate
+
+2. Enable Vertex AI API:
+   https://console.cloud.google.com/apis/library/aiplatform.googleapis.com
+
+3. Create a service account and download JSON key:
+   https://console.cloud.google.com/iam-admin/serviceaccounts
+
+4. Set environment variables:
+   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
+   export GCP_PROJECT_ID=your-project-id
+
+   Or use API key:
+   export VERTEX_AI_API_KEY=your-api-key
+
+5. Usage:
+   from ministudio.providers import VertexAIProvider
+   provider = VertexAIProvider.create(project_id="my-project")
+"""
