@@ -32,28 +32,60 @@ pip install -e .
 ```
 
 ### 2. Configure Credentials
-MiniStudio supports **Vertex AI (Veo 3.1)** and **Google TTS**. 
+MiniStudio supports **Vertex AI (Veo 3.1)**, **Google TTS**, and is extensible to any generative model. 
 
-#### Using Doppler (Recommended)
-[Doppler](https://www.doppler.com/) is a multi-platform secret manager. If you use it, you can run:
+**See the [Configuration & Secrets Guide](docs/configuration_and_secrets.md)** for comprehensive setup instructions covering:
+- Doppler (recommended for production)
+- `.env` files for local development
+- Cloud secret managers (GCP, AWS, Azure)
+- Multi-provider integration (Hugging Face, local models, custom endpoints)
+
+#### Quick Setup (Local Dev)
+1. Copy `.env.example` to `.env`
+2. Add your credentials:
 ```bash
+cp .env.example .env
+# Edit .env with your API keys
+```
+
+#### Quick Setup (Production with Doppler)
+```bash
+# Install Doppler: https://www.doppler.com/docs/cli
 doppler run -- python examples/contextbytes_brand_story.py
 ```
 
-#### Using .env or Environment Variables
-If you don't use Doppler, simply create a `.env` file or export your variables directly:
-```bash
-export GOOGLE_API_KEY="your-key-here"
-# or
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/key.json"
+### 3. Your First Shot
+
+**For Non-Technical Users (Simplest!)**
+```python
+from ministudio.simple_builder import generate_video
+
+# Just describe what you want!
+result = generate_video("""
+A lone researcher discovers a glowing orb in the lab.
+She looks amazed and reaches towards it.
+Duration: 10 seconds
+Style: cinematic
+""")
+
+print(f"Video created: {result.video_path}")
 ```
 
-### 3. Your First Shot
-```python
-from ministudio import VideoOrchestrator, VertexAIProvider
+Or use **interactive mode** (no code needed!):
+```bash
+python ministudio/simple_builder.py
+```
 
-# Initialize the Director
-orchestrator = VideoOrchestrator(VertexAIProvider())
+👉 **[See "For Non-Technical Users" Guide](docs/for_non_technical_users.md)**
+
+**For Developers (With Adapters)**
+```python
+from ministudio import VideoOrchestrator
+from ministudio.adapters import VertexAIAdapter
+
+# Initialize with your provider
+provider = VertexAIAdapter.create(project_id="my-gcp-project")
+orchestrator = VideoOrchestrator(provider)
 
 # Define a Shot
 shot = ShotConfig(
@@ -65,6 +97,25 @@ shot = ShotConfig(
 # Produce
 await orchestrator.generate_shot(shot)
 ```
+
+👉 **[See Provider Adapters](ministudio/adapters/README.md)**
+
+---
+
+## Provider Support
+
+MiniStudio supports multiple video generation providers out of the box:
+
+| Provider | Status | Setup Difficulty | Cost | Best For |
+|----------|--------|------------------|------|----------|
+| **Vertex AI (Veo 3.1)** | ✅ Built-in | Easy | $$ | Production, quality |
+| **Hugging Face** | ✅ Built-in | Easy | Free (local) / $ (cloud) | Development, flexibility |
+| **Local Models** | ✅ Built-in | Medium | Free | Privacy, offline, experimentation |
+| **OpenAI Sora** | 🚧 Coming Soon | TBD | TBD | Ultra-high quality |
+| **Kling AI** | 🚧 Roadmap | TBD | TBD | Alternative provider |
+| **Luma AI** | 🚧 Roadmap | TBD | TBD | Alternative provider |
+
+See [Configuration & Secrets Guide](docs/configuration_and_secrets.md) for detailed integration instructions.
 
 ---
 

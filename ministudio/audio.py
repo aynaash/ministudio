@@ -1,8 +1,12 @@
 """
 Audio Generation for Ministudio.
 Handles voice synthesis for character dialogue.
+
+
 """
 
+
+# TODO: add more providers like Amazon Polly, Azure TTS, or opensource models tts
 import logging
 from typing import Dict, List, Optional, Any, Protocol, runtime_checkable
 from pathlib import Path

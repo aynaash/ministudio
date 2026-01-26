@@ -48,6 +48,30 @@ from .config import (
 from .state import VideoStateMachine, WorldState
 from .orchestrator import VideoOrchestrator
 
+# Simple Builder (Non-Technical Interface)
+from .simple_builder import (
+    SimpleBuilder,
+    SimpleVideoRequest,
+    generate_video,
+    generate_video_from_description,
+    generate_from_template,
+    interactive_setup,
+    TEMPLATES
+)
+
+# Audio Agent (Voice-to-Video)
+from .audio_agent import (
+    AudioAgent,
+    AudioTranscriber,
+    PromptCompiler,
+    VideoPrompt,
+    TranscriptionProvider,
+    audio_to_prompt,
+    text_to_prompt,
+    audio_to_video,
+    interactive_audio_session
+)
+
 __version__ = "0.1.0"
 __author__ = "Ministudio Team"
 __email__ = "team@ministudio.ai"
